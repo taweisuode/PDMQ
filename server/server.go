@@ -2,7 +2,7 @@ package main
 
 import (
 	argv "pmq/server/argv"
-	topic "pmq/server/topic"
+	"pmq/server/pmqd"
 )
 
 func main() {
@@ -11,5 +11,5 @@ func main() {
 	argv.ParseFlag()
 
 	//进行tcp 监听
-	topic.TcpListen()
+	pmqd.TcpListen()
 }

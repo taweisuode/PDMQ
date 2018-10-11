@@ -1,19 +1,26 @@
-package topic
+package pmqd
 
 import (
 	"fmt"
 	"net"
 )
 
+type Topic struct {
+	tcpListener  net.TCPListener
+	httpListener net.TCPListener
+}
+
 func TcpListen() {
-	listen, err := net.ListenTCP("tcp", &net.TCPAddr{net.ParseIP("127.0.0.1"), 9999, ""})
+	topicObject := &Topic{}
+	tcpListener, err := net.ListenTCP("tcp", &net.TCPAddr{net.ParseIP("127.0.0.1"), 9999, ""})
+	topicObject.tcpListener = *tcpListener
 	if err != nil {
 		fmt.Println("tcp connect fail", err.Error())
 		return
 	}
 	id := 0
 	for {
-		conn, err := listen.AcceptTCP()
+		conn, err := topicObject.tcpListener.AcceptTCP()
 		if err != nil {
 			fmt.Println("tcp accept fail", err.Error())
 		}
