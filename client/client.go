@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	conn, err := net.DialTimeout("tcp", ":9999", 2*time.Second)
+	conn, err := net.DialTimeout("tcp", ":9998", 2*time.Second)
 	if err != nil {
 		fmt.Println("tcp connect error ", err.Error())
 		return

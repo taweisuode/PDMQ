@@ -1,8 +1,8 @@
 package main
 
 import (
-	argv "pmq/server/argv"
-	"pmq/server/pmqd"
+	argv "PDMQ/server/argv"
+	"PDMQ/server/pdmqd"
 )
 
 func main() {
@@ -12,4 +12,5 @@ func main() {
 
 	//进行tcp 监听
 	pmqd.TcpListen()
+	pmqd.HttpListen()
 }
