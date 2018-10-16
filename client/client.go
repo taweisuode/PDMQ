@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
+	"os"
+	"sync"
 	"time"
 )
 
@@ -14,7 +15,13 @@ func main() {
 		return
 	}
 	defer conn.Close()
-	for {
+	// 下面进行读写
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go handleWrite(conn, &wg)
+	//go handleRead(conn, &wg)
+	wg.Wait()
+	/*for {
 		var buf = make([]byte, 32)
 		n, err := conn.Read(buf)
 		if err != nil && err != io.EOF {
@@ -27,5 +34,46 @@ func main() {
 			}
 			fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
 		}
+	}*/
+	/*for {
+		for {
+			conn, err := topicObject.tcpListener.Accept()
+			if err != nil {
+				fmt.Println("tcp accept fail", err.Error())
+			}
+			id++
+			if tconn, ok := conn.(*net.TCPConn); ok {
+				go HandleConn(tconn, id)
+			}
+		}
+		fmt.Println("connect close")
+		defer conn.Close()
+	}*/
+}
+
+func handleWrite(conn net.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println("what would you do ?")
+	work := ""
+	for {
+		fmt.Scanf("%s", &work)
+		switch work {
+		case "create_topic":
+			fmt.Println("send your message")
+			topic := ""
+			message := ""
+			fmt.Scanf("%s,%s", &topic, &message)
+
+			_, err := conn.Write(([]byte(topic + "")))
+			if err != nil {
+				fmt.Println("write data error", err)
+			}
+			if work == "exit" {
+				break
+			}
+			os.Exit(1)
+		}
 	}
+	fmt.Println("connect close")
+	defer conn.Close()
 }
