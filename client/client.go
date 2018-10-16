@@ -68,10 +68,12 @@ func handleWrite(conn net.Conn, wg *sync.WaitGroup) {
 			if err != nil {
 				fmt.Println("write data error", err)
 			}
-			if work == "exit" {
-				break
-			}
+			continue
+		case "exit":
 			os.Exit(1)
+			break
+		default:
+			continue
 		}
 	}
 	fmt.Println("connect close")
