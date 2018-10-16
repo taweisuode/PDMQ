@@ -3,7 +3,7 @@ package pdmqd
 type Consumer interface {
 	UnPause()
 	Pause()
-	Close() error
+	Close()
 	TimedOutMessage()
 	Empty()
 }
