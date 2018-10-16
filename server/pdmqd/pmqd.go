@@ -47,34 +47,14 @@ func (pdmqd *PDMQD) TcpListen() {
 		fmt.Println("tcp connect fail", err.Error())
 		return
 	}
-	//id := 0
-	/*	for {
-		conn, err := topicObject.tcpListener.Accept()
-		if err != nil {
-			fmt.Println("tcp accept fail", err.Error())
-		}
-		id++
-		if tconn, ok := conn.(*net.TCPConn); ok {
-			go HandleConn(tconn, id)
-		}
-
-	}*/
 	for {
 		conn, err := topicObject.tcpListener.Accept()
+		fmt.Println(conn)
 		if err != nil {
 			fmt.Println("tcp accept fail", err.Error())
 		}
-		var buf = make([]byte, 32)
-		n, err := conn.Read(buf)
-		if err != nil && err != io.EOF {
-			fmt.Println("read error:", err)
-			break
-		} else {
-			if string(buf[:n]) == "exit" {
-				fmt.Println("connect exit")
-				break
-			}
-			fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
+		if tconn, ok := conn.(*net.TCPConn); ok {
+			go AcceptConn(tconn)
 		}
 	}
 	fmt.Println("hello world")
@@ -121,7 +101,7 @@ func (pdmqd *PDMQD) HttpListen() {
 
 	}*/
 }
-func HandleConn(conn *net.TCPConn, id int) {
+func HandleConn(conn *net.TCPConn) {
 	fmt.Println("send your message")
 	message := ""
 	for {
@@ -142,4 +122,23 @@ func HandleConn(conn *net.TCPConn, id int) {
 	}
 	fmt.Println("connect close")
 	defer conn.Close()
+}
+func AcceptConn(conn *net.TCPConn) {
+	for {
+		var buf = make([]byte, 32)
+		n, err := conn.Read(buf)
+		if err != nil && err != io.EOF {
+			fmt.Println("read error:", err)
+			break
+		} else {
+			if string(buf[:n]) == "exit" {
+				fmt.Println("connect exit")
+				break
+			}
+			if n != 0 {
+				fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
+			}
+		}
+	}
+
 }
