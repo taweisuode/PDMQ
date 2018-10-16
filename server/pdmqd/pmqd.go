@@ -1,30 +1,54 @@
-package pmqd
+package pdmqd
 
 import (
 	"PDMQ/server/argv"
 	"fmt"
+	"io"
 	"net"
 )
 
-type Topic struct {
-	config       flag.Config
+type PDMQD struct {
+	config   flag.Config
+	topicMap map[string]*Topic
+
 	tcpListener  net.Listener
 	httpListener net.Listener
 }
 
-func TcpListen() {
-	config := flag.Construct()
-	fmt.Println(config.TCPAddress, config.HTTPAddress)
-	tcpListener, err := net.Listen("tcp", config.TCPAddress)
-	topicObject := &Topic{
+func Start(config *flag.ArgvConfig) {
+	pdmqd := New(config)
+	pdmqd.Main()
+}
+
+//
+func New(config *flag.ArgvConfig) (pdmqd *PDMQD) {
+	currentConfig := flag.Config{TCPAddress: config.TcpListen, HTTPAddress: config.HttpListen}
+	return &PDMQD{config: currentConfig}
+}
+
+/**
+ * @desc pmqd 主进程 开启tcp 跟http 监听
+ * @param
+ * @return
+ */
+func (pdmqd *PDMQD) Main() {
+
+	pdmqd.TcpListen()
+
+	pdmqd.HttpListen()
+}
+func (pdmqd *PDMQD) TcpListen() {
+	fmt.Println(pdmqd.config)
+	tcpListener, err := net.Listen("tcp", pdmqd.config.TCPAddress)
+	topicObject := &PDMQD{
 		tcpListener: tcpListener,
 	}
 	if err != nil {
 		fmt.Println("tcp connect fail", err.Error())
 		return
 	}
-	id := 0
-	for {
+	//id := 0
+	/*	for {
 		conn, err := topicObject.tcpListener.Accept()
 		if err != nil {
 			fmt.Println("tcp accept fail", err.Error())
@@ -34,22 +58,58 @@ func TcpListen() {
 			go HandleConn(tconn, id)
 		}
 
+	}*/
+	for {
+		conn, err := topicObject.tcpListener.Accept()
+		if err != nil {
+			fmt.Println("tcp accept fail", err.Error())
+		}
+		var buf = make([]byte, 32)
+		n, err := conn.Read(buf)
+		if err != nil && err != io.EOF {
+			fmt.Println("read error:", err)
+			break
+		} else {
+			if string(buf[:n]) == "exit" {
+				fmt.Println("connect exit")
+				break
+			}
+			fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
+		}
 	}
 	fmt.Println("hello world")
 }
 
-func HttpListen() {
-	config := flag.Construct()
-	httpListener, err := net.Listen("tcp", config.HTTPAddress)
-	topicObject := &Topic{
+func (pdmqd *PDMQD) HttpListen() {
+	httpListener, err := net.Listen("tcp", pdmqd.config.HTTPAddress)
+	topicObject := &PDMQD{
 		httpListener: httpListener,
 	}
 	if err != nil {
 		fmt.Println("http connect fail", err.Error())
 		return
 	}
-	id := 0
+	//id := 0
+
 	for {
+		conn, err := topicObject.tcpListener.Accept()
+		if err != nil {
+			fmt.Println("tcp accept fail", err.Error())
+		}
+		var buf = make([]byte, 32)
+		n, err := conn.Read(buf)
+		if err != nil && err != io.EOF {
+			fmt.Println("read error:", err)
+			break
+		} else {
+			if string(buf[:n]) == "exit" {
+				fmt.Println("connect exit")
+				break
+			}
+			fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
+		}
+	}
+	/*for {
 		conn, err := topicObject.tcpListener.Accept()
 		if err != nil {
 			fmt.Println("tcp accept fail", err.Error())
@@ -59,7 +119,7 @@ func HttpListen() {
 			go HandleConn(tconn, id)
 		}
 
-	}
+	}*/
 }
 func HandleConn(conn *net.TCPConn, id int) {
 	fmt.Println("send your message")
