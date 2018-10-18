@@ -1,6 +1,9 @@
 package pdmqd
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	MsgIDLength       = 16
@@ -21,4 +24,17 @@ type Message struct {
 	pri        int64
 	index      int
 	deferred   time.Duration
+}
+
+/**
+ * @desc revert []byte into Message struct
+ * @param (query []byte
+ * @return (msg *Message)
+ */
+func MakeMessage(buf []byte) *Message {
+	var msg *Message
+	fmt.Println(time.Nanosecond.Nanoseconds())
+
+	msg.Timestamp = time.Nanosecond.Nanoseconds()
+	return msg
 }
