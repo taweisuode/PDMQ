@@ -2,6 +2,7 @@ package pdmqd
 
 import (
 	"fmt"
+	"github.com/timespacegroup/go-utils"
 	"time"
 )
 
@@ -26,15 +27,33 @@ type Message struct {
 	deferred   time.Duration
 }
 
+func (msg *Message) CreateMessageId() MessageID {
+	var buf MessageID
+	guid := []byte(tsgutils.GUID())
+	for index, value := range guid {
+		if index < MsgIDLength {
+			buf[index] = value
+		}
+	}
+	return buf
+}
+func CreateMessage(id MessageID, body []byte) *Message {
+	return &Message{
+		ID:        id,
+		Body:      body,
+		Timestamp: time.Now().UnixNano(),
+	}
+}
+
 /**
  * @desc revert []byte into Message struct
  * @param (query []byte
  * @return (msg *Message)
  */
-func MakeMessage(buf []byte) *Message {
+func RevertMessage(buf []byte) *Message {
 	var msg *Message
-	fmt.Println(time.Nanosecond.Nanoseconds())
+	fmt.Println(time.Now().Nanosecond())
 
-	msg.Timestamp = time.Nanosecond.Nanoseconds()
+	msg.Timestamp = time.Now().UnixNano()
 	return msg
 }

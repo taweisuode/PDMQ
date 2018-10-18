@@ -54,7 +54,7 @@ func (pdmqd *PDMQD) TcpListen() {
 			fmt.Println("tcp accept fail", err.Error())
 		}
 		if tconn, ok := conn.(*net.TCPConn); ok {
-			go AcceptConn(tconn)
+			go AcceptConn(pdmqd, tconn)
 		}
 	}
 	fmt.Println("hello world")
@@ -123,10 +123,11 @@ func HandleConn(conn *net.TCPConn) {
 	fmt.Println("connect close")
 	defer conn.Close()
 }
-func AcceptConn(conn *net.TCPConn) {
+func AcceptConn(pdmqd *PDMQD, conn *net.TCPConn) {
 	for {
 		var buf = make([]byte, 32)
 		n, err := conn.Read(buf)
+		CreateTopic(string(buf[:]), &context{pdmqd})
 		if err != nil && err != io.EOF {
 			fmt.Println("read error:", err)
 			break
