@@ -39,6 +39,7 @@ func (t *Topic) msgOutput() {
 		fmt.Printf("%s", channelArr)*/
 	select {
 	case msg = <-memoryMsgChan:
-		msg = RevertMessage(buf)
+		//msg = RevertMessage(buf)
 	}
+
 }
