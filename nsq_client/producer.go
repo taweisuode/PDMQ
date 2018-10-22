@@ -15,15 +15,12 @@ func Producer() {
 		panic(err)
 	}
 
-	i := 1
-	for {
+	for i := 0; i < 100; i++ {
 		if err := producer.Publish("pdmqd", []byte(fmt.Sprintf("Hello World %d", i))); err != nil {
 			fmt.Println("Publish", err)
 			panic(err)
 		}
-
 		time.Sleep(time.Second * 5)
-
 		i++
 	}
 }
