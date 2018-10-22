@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 )
 
 type PDMQD struct {
@@ -13,6 +14,8 @@ type PDMQD struct {
 
 	tcpListener  net.Listener
 	httpListener net.Listener
+
+	sync.RWMutex
 }
 
 func Start(config *flag.ArgvConfig) {
