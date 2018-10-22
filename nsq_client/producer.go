@@ -24,7 +24,6 @@ func Producer() {
 		i++
 	}
 }
-
 func main() {
 	Producer()
 }
