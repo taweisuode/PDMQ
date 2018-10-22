@@ -33,7 +33,7 @@ func ConsumerA() {
 
 // ConsumerB 消费者
 func ConsumerB() {
-	consumer, err := nsq.NewConsumer("pdmqd", "2", nsq.NewConfig())
+	consumer, err := nsq.NewConsumer("pdmqd", "1", nsq.NewConfig())
 	if err != nil {
 		fmt.Println("NewConsumer", err)
 		panic(err)
