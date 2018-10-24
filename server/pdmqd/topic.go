@@ -4,6 +4,7 @@ import (
 	"PDMQ/server/waitGroup"
 	"fmt"
 	"os"
+	"sync"
 )
 
 type Topic struct {
@@ -12,6 +13,7 @@ type Topic struct {
 	memoryMsgChan chan *Message
 	waitGroup     waitGroup.WaitGroupWrapper
 	ctx           *context
+	sync.RWMutex
 }
 
 func CreateTopic(topicName string, ctx *context) *Topic {
@@ -27,7 +29,7 @@ func CreateTopic(topicName string, ctx *context) *Topic {
 
 func (t *Topic) msgOutput() {
 	var msg *Message
-	var buf []byte
+	//var buf []byte
 	var memoryMsgChan chan *Message
 	fmt.Println(msg.CreateMessageId())
 	os.Exit(1)
@@ -53,5 +55,17 @@ func (pdmqd *PDMQD) GetTopic(topicName string) *Topic {
 		return topic
 	}
 	topic = CreateTopic(topicName, &context{pdmqd: pdmqd})
+	return topic
+}
 
+func (topic *Topic) GetChannel(channelName string) *Channel {
+	topic.Lock()
+	channel, ok := topic.channelMap[channelName]
+	if !ok {
+		channel = CreateChannel(topic.topicName, channelName, topic.ctx)
+	}
+	topic.channelMap[channelName] = channel
+	topic.Unlock()
+
+	return channel
 }

@@ -3,6 +3,8 @@ package test
 import (
 	"PDMQ/server/argv"
 	"PDMQ/server/pdmqd"
+	"fmt"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -12,15 +14,21 @@ func PutMessageTest(t testing.T) {
 	config := flag.ParseFlag()
 	pdmqd := pdmqd.New(config)
 
-	topicName := "test_put_message" + strconv.Itoa(int(time.Now().Unix()))
+	topicName := "test_helloworld" + strconv.Itoa(int(time.Now().Unix()))
 	topic := pdmqd.GetTopic(topicName)
 	channel1 := topic.GetChannel("ch")
-
-	var id MessageID
+	fmt.Println(topic)
+	fmt.Println(channel1)
+	os.Exit(1)
+	/*var id MessageID
 	msg := NewMessage(id, []byte("test"))
 	topic.PutMessage(msg)
 
 	outputMsg := <-channel1.memoryMsgChan
 	test.Equal(t, msg.ID, outputMsg.ID)
-	test.Equal(t, msg.Body, outputMsg.Body)
+	test.Equal(t, msg.Body, outputMsg.Body)*/
+}
+
+func main() {
+
 }
