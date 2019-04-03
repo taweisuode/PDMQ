@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"sync"
 )
 
@@ -50,6 +51,7 @@ func (pdmqd *PDMQD) TcpListen() {
 		fmt.Println("tcp connect fail", err.Error())
 		return
 	}
+	var connect Connect
 	for {
 		conn, err := topicObject.tcpListener.Accept()
 		fmt.Println(conn)
@@ -57,7 +59,9 @@ func (pdmqd *PDMQD) TcpListen() {
 			fmt.Println("tcp accept fail", err.Error())
 		}
 		if tconn, ok := conn.(*net.TCPConn); ok {
-			go AcceptConn(pdmqd, tconn)
+			fmt.Println(tconn, pdmqd)
+			os.Exit(1)
+			go connect.AcceptConnect(pdmqd, tconn)
 		}
 	}
 	fmt.Println("hello world")
@@ -125,24 +129,4 @@ func HandleConn(conn *net.TCPConn) {
 	}
 	fmt.Println("connect close")
 	defer conn.Close()
-}
-func AcceptConn(pdmqd *PDMQD, conn *net.TCPConn) {
-	for {
-		var buf = make([]byte, 32)
-		n, err := conn.Read(buf)
-		CreateTopic(string(buf[:]), &context{pdmqd})
-		if err != nil && err != io.EOF {
-			fmt.Println("read error:", err)
-			break
-		} else {
-			if string(buf[:n]) == "exit" {
-				fmt.Println("connect exit")
-				break
-			}
-			if n != 0 {
-				fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
-			}
-		}
-	}
-
 }
