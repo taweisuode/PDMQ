@@ -36,6 +36,7 @@ func (p *program) Start() error {
 	p.pdmqd = pdmqd.New(config)
 	go func() {
 		//开启pmqd
+
 		p.pdmqd.Main()
 	}()
 	return nil
