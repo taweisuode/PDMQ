@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-nsq"
+	"github.com/nsqio/go-nsq"
 	"time"
 )
 

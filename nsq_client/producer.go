@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/nsqio/go-nsq"
 	"time"
-
-	"go-nsq"
 )
 
 // Producer 生产者

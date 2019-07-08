@@ -19,11 +19,6 @@ type PDMQD struct {
 	sync.RWMutex
 }
 
-func Start(config *flag.ArgvConfig) {
-	pdmqd := New(config)
-	pdmqd.Main()
-}
-
 //
 func New(config *flag.ArgvConfig) (pdmqd *PDMQD) {
 	currentConfig := flag.Config{TCPAddress: config.TcpListen, HTTPAddress: config.HttpListen}
@@ -129,4 +124,14 @@ func HandleConn(conn *net.TCPConn) {
 	}
 	fmt.Println("connect close")
 	defer conn.Close()
+}
+
+func (pdmqd *PDMQD) Exit() {
+	if pdmqd.tcpListener != nil {
+		pdmqd.tcpListener.Close()
+	}
+	if pdmqd.httpListener != nil {
+		pdmqd.httpListener.Close()
+	}
+	//todo 这里处理异常关闭的消息，存入硬盘
 }
