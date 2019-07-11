@@ -1,0 +1,8 @@
+# github.com/golang/snappy v0.0.1
+github.com/golang/snappy
+# github.com/judwhite/go-svc v1.1.2
+github.com/judwhite/go-svc/svc
+# github.com/nsqio/go-nsq v1.0.7
+github.com/nsqio/go-nsq
+# github.com/timespacegroup/go-utils v0.0.0-20181126045345-a86b05b01c1e
+github.com/timespacegroup/go-utils

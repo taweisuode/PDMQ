@@ -3,6 +3,7 @@ package main
 import (
 	argv "PDMQ/server/argv"
 	"PDMQ/server/pdmqd"
+	"github.com/cihub/seelog"
 	"github.com/judwhite/go-svc/svc"
 	"log"
 	"sync"
@@ -22,7 +23,7 @@ type program struct {
 func main() {
 	program := &program{}
 	if err := svc.Run(program, syscall.SIGINT, syscall.SIGTERM); err != nil {
-		log.Fatal("%v", err.Error())
+		log.Fatalf("%v", err.Error())
 	}
 }
 
@@ -30,15 +31,27 @@ func (p *program) Init(env svc.Environment) error {
 	return nil
 }
 
-func (p *program) Start() error {
-	config := argv.ParseFlag()
+func (p *program) Start() (err error) {
+	initConf := pdmqd.InitConfig()
+	config := argv.ParseFlag(initConf)
+	p.pdmqd, err = pdmqd.New(config)
+	if err != nil {
+		seelog.Error("new pdmqd error is ", err)
+	}
+	if err != nil {
+		seelog.Errorf("failed to persist metadata - %s ", err)
+	}
 
-	p.pdmqd = pdmqd.New(config)
 	go func() {
 		//开启pmqd
+		err := p.pdmqd.Main()
+		if err != nil {
+			p.Stop()
+			//os.Exit(1)
 
-		p.pdmqd.Main()
+		}
 	}()
+
 	return nil
 }
 

@@ -1,0 +1,17 @@
+<seelog type="asynctimer" asyncinterval="5000000" minlevel="debug" maxlevel="error">
+    <exceptions>
+        <exception filepattern="*main.go" minlevel="info"/>
+    </exceptions>
+
+    <outputs formatid="main">-->去找id为main的格式
+        <rollingfile type="size" filename="/data/logs/PDMQ/info.log" maxsize="1048576000" maxrolls="10"/>
+
+        <filter levels="error">
+            <file path="/data/logs/PDMQ/error.log"/>
+            -->向文件输出。可以多个共存。
+        </filter>
+    </outputs>
+    <formats>
+        <format id="main" format="%Date/%Time [%File::%Line] [%LEV] %Msg%n"/>
+    </formats>
+</seelog>

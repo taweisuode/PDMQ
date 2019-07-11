@@ -1,28 +1,52 @@
 package pdmqd
 
 import (
-	"PDMQ/server/argv"
+	"PDMQ/internal/util"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"sync"
+	"time"
 )
 
 type PDMQD struct {
-	config   flag.Config
+	config   *PDMQDConfig
 	topicMap map[string]*Topic
 
 	tcpListener  net.Listener
 	httpListener net.Listener
 
+	exitChan  chan int
+	waitGroup util.WaitGroupWrapper
+
+	startTime time.Time
+
 	sync.RWMutex
 }
 
 //
-func New(config *flag.ArgvConfig) (pdmqd *PDMQD) {
-	currentConfig := flag.Config{TCPAddress: config.TcpListen, HTTPAddress: config.HttpListen}
-	return &PDMQD{config: currentConfig}
+func New(config *PDMQDConfig) (*PDMQD, error) {
+	var (
+		err error
+	)
+	pdmqd := &PDMQD{
+		config:    config,
+		startTime: time.Now(),
+		topicMap:  make(map[string]*Topic),
+		exitChan:  make(chan int),
+	}
+
+	pdmqd.tcpListener, err = net.Listen("tcp", config.TCPAddress)
+	if err != nil {
+		return nil, fmt.Errorf("listen (%s) failed - %s", config.TCPAddress, err)
+	}
+	pdmqd.httpListener, err = net.Listen("tcp", config.HTTPAddress)
+	if err != nil {
+		return nil, fmt.Errorf("listen (%s) failed - %s", config.HTTPAddress, err)
+	}
+
+	return pdmqd, err
 }
 
 /**
@@ -30,11 +54,41 @@ func New(config *flag.ArgvConfig) (pdmqd *PDMQD) {
  * @param
  * @return
  */
-func (pdmqd *PDMQD) Main() {
+func (pdmqd *PDMQD) Main() error {
+	ctx := &context{pdmqd: pdmqd}
+	exitChan := make(chan error)
+	var once sync.Once
+	exitFunc := func(err error) {
+		//去掉这个once 的话 exitFunc 会执行多次
+		once.Do(func() {
+			if err != nil {
+			}
+			fmt.Println(err)
+			exitChan <- err
+		})
+	}
+	tcpServer := &tcpServer{ctx: ctx}
+	util.PrintJson("tcpServer:", tcpServer)
 
-	pdmqd.TcpListen()
+	//这里捕获退出的方法
+	/*pdmqd.waitGroup.Wrap(func() {
+		exitFunc(TCPServer(pdmqd.tcpListener, tcpServer))
+	})*/
 
-	pdmqd.HttpListen()
+	httpServer := newHTTPServer(ctx)
+	pdmqd.waitGroup.Wrap(func() {
+		exitFunc(HTTPServer(pdmqd.httpListener, httpServer, "http"))
+	})
+	err := <-exitChan
+	return err
+
+	//pdmqd.TcpListen()
+
+	//pdmqd.HttpListen()
+}
+func testA() error {
+	//a := errors.New("hello error")
+	return nil
 }
 func (pdmqd *PDMQD) TcpListen() {
 	fmt.Println(pdmqd.config)
