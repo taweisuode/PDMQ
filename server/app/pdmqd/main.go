@@ -1,7 +1,6 @@
 package main
 
 import (
-	argv "PDMQ/server/argv"
 	"PDMQ/server/pdmqd"
 	"github.com/cihub/seelog"
 	"github.com/judwhite/go-svc/svc"
@@ -33,7 +32,7 @@ func (p *program) Init(env svc.Environment) error {
 
 func (p *program) Start() (err error) {
 	initConf := pdmqd.InitConfig()
-	config := argv.ParseFlag(initConf)
+	config := pdmqd.ParseFlag(initConf)
 	p.pdmqd, err = pdmqd.New(config)
 	if err != nil {
 		seelog.Error("new pdmqd error is ", err)

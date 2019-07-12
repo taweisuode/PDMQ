@@ -44,8 +44,8 @@ func InitConfig() *PDMQDConfig {
 		ID: defaultID,
 
 		LogPath:                  current + "/../../../internal/log/log.xml",
-		TCPAddress:               "0.0.0.0:8800",
-		HTTPAddress:              "0.0.0.0:8801",
+		TCPAddress:               "0.0.0.0:9400",
+		HTTPAddress:              "0.0.0.0:9401",
 		HTTPClientConnectTimeout: 2 * time.Second,
 		HTTPClientRequestTimeout: 5 * time.Second,
 		MsgChanSize:              9999,
