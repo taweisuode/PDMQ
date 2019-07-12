@@ -9,7 +9,7 @@ package pdmqd
 import (
 	"PDMQ/server/pdmqd/api"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
 	"strings"
@@ -20,15 +20,22 @@ type httpServer struct {
 	router http.Handler
 }
 
+/**
+ *  @desc:  用gin 作为http 服务框架
+ *  @input: ctx *context
+ *  @resp:  *httpServer
+ *
+**/
 func newHTTPServer(ctx *context) *httpServer {
-	router := httprouter.New()
-	router.HandleMethodNotAllowed = true
+	ginApi := gin.New()
+	gin.SetMode(gin.DebugMode)
+	ginApi.Use(api.AddTraceId())
 
 	server := &httpServer{
 		ctx:    ctx,
-		router: router,
+		router: ginApi,
 	}
-	router.HandlerFunc("GET", "/ping", api.Ping)
+	ginApi.GET("/ping", api.Ping)
 
 	return server
 

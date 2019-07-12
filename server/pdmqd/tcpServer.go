@@ -26,3 +26,18 @@ func TCPServer(listener net.Listener, handler TCPHandler) error {
 	}
 	return nil
 }
+
+func Handle(conn net.Conn) {
+	defer conn.Close()
+	for {
+		var buf [128]byte
+		n, err := conn.Read(buf[:])
+
+		if err != nil {
+			fmt.Printf("read from connect failed, err: %v\n", err)
+			break
+		}
+		str := string(buf[:n])
+		fmt.Printf("receive from client, data: %v\n", str)
+	}
+}

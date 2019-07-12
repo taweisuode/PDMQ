@@ -71,9 +71,9 @@ func (pdmqd *PDMQD) Main() error {
 	util.PrintJson("tcpServer:", tcpServer)
 
 	//这里捕获退出的方法
-	/*pdmqd.waitGroup.Wrap(func() {
+	pdmqd.waitGroup.Wrap(func() {
 		exitFunc(TCPServer(pdmqd.tcpListener, tcpServer))
-	})*/
+	})
 
 	httpServer := newHTTPServer(ctx)
 	pdmqd.waitGroup.Wrap(func() {
