@@ -11,10 +11,15 @@ const (
 
 	PubMsgReadError = 11000
 	MsgTooBig       = 11001
+	MsgEmpty        = 11002
+
+	TopicMsgError = 12100
 )
 
 var RespMsg = map[int]string{
 	Success:         "success",
 	PubMsgReadError: "pub msg read error",
 	MsgTooBig:       "pub msg is too big",
+	MsgEmpty:        "pub msg is empty",
+	TopicMsgError:   "topci pub msg error",
 }

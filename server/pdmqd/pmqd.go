@@ -77,7 +77,6 @@ func (pdmqd *PDMQD) Main() error {
 
 	httpServer := newHTTPServer(ctx)
 
-	util.PrintJson("a", httpServer)
 	pdmqd.waitGroup.Wrap(func() {
 		exitFunc(HTTPServer(pdmqd.httpListener, httpServer, "http"))
 	})

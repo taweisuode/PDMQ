@@ -52,7 +52,7 @@ func InitConfig() *PDMQDConfig {
 		HTTPClientRequestTimeout: 5 * time.Second,
 
 		MsgChanSize: 9999,
-		MsgMaxSize:  2, //最大消息体为2Mb
+		MsgMaxSize:  1024 * 1024 * 2, //最大消息体为2Mb
 	}
 	return initConf
 }

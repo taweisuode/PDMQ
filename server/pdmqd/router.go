@@ -9,7 +9,6 @@ package pdmqd
 import (
 	"PDMQ/internal/common"
 	"PDMQ/internal/util"
-	"fmt"
 	"github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -37,11 +36,24 @@ func (server *httpServer) Pub(c *gin.Context) {
 		util.SendResult(c, common.PubMsgReadError, common.RespMsg[common.PubMsgReadError], nil)
 		return
 	}
-	fmt.Println(server.ctx.pdmqd.config.MsgMaxSize, len(topicMsg))
 	if server.ctx.pdmqd.config.MsgMaxSize < len(topicMsg) {
 		seelog.Error("pub msg size is bigger than MsgMaxSize,current length is %d", len(topicMsg))
 		util.SendResult(c, common.MsgTooBig, common.RespMsg[common.MsgTooBig], nil)
 		return
+	}
+	if len(topicMsg) == 0 {
+		seelog.Error("pub msg size is empty ")
+		util.SendResult(c, common.MsgTooBig, common.RespMsg[common.MsgTooBig], nil)
+		return
+	}
+
+	topic := server.ctx.pdmqd.GetTopic(topicName)
+	util.PrintJson("topic is ", topic)
+
+	msg := CreateMessage(topic.GenerateID(), topicMsg)
+	err = topic.PutMessage(msg)
+	if err != nil {
+		util.SendResult(c, common.TopicMsgError, common.RespMsg[common.TopicMsgError], nil)
 	}
 	sucJson := map[string]interface{}{}
 	sucJson["topic"] = topicName
