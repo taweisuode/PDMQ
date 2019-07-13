@@ -36,4 +36,5 @@ func SendResult(c *gin.Context, errCode int, msg string, data interface{}) {
 		c.Set("errMsg", msg)
 	}
 	c.JSON(200, result)
+	return
 }

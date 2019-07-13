@@ -26,7 +26,9 @@ type PDMQDConfig struct {
 	HTTPAddress              string        `flag:"http-address"`
 	HTTPClientConnectTimeout time.Duration `flag:"http-client-connect-timeout" cfg:"http_client_connect_timeout"`
 	HTTPClientRequestTimeout time.Duration `flag:"http-client-request-timeout" cfg:"http_client_request_timeout"`
-	MsgChanSize              int64
+
+	MsgChanSize int64
+	MsgMaxSize  int
 }
 
 func InitConfig() *PDMQDConfig {
@@ -48,7 +50,9 @@ func InitConfig() *PDMQDConfig {
 		HTTPAddress:              "0.0.0.0:9401",
 		HTTPClientConnectTimeout: 2 * time.Second,
 		HTTPClientRequestTimeout: 5 * time.Second,
-		MsgChanSize:              9999,
+
+		MsgChanSize: 9999,
+		MsgMaxSize:  2, //最大消息体为2Mb
 	}
 	return initConf
 }

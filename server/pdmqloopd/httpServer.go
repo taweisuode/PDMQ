@@ -7,7 +7,7 @@
 package pdmqloopd
 
 import (
-	"PDMQ/server/pdmqd/api"
+	"PDMQ/server/pdmqd"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net"
@@ -29,13 +29,13 @@ type httpServer struct {
 func newHTTPServer(ctx *context) *httpServer {
 	ginApi := gin.New()
 	gin.SetMode(gin.DebugMode)
-	ginApi.Use(api.AddTraceId())
+	ginApi.Use(pdmqd.AddTraceId())
 
 	server := &httpServer{
 		ctx:    ctx,
 		router: ginApi,
 	}
-	ginApi.GET("/ping", api.Ping)
+	ginApi.GET("/ping", server.Ping)
 
 	return server
 

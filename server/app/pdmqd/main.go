@@ -5,6 +5,7 @@ import (
 	"github.com/cihub/seelog"
 	"github.com/judwhite/go-svc/svc"
 	"log"
+	"os"
 	"sync"
 	"syscall"
 )
@@ -46,7 +47,7 @@ func (p *program) Start() (err error) {
 		err := p.pdmqd.Main()
 		if err != nil {
 			p.Stop()
-			//os.Exit(1)
+			os.Exit(1)
 
 		}
 	}()
