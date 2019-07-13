@@ -49,8 +49,8 @@ func New(config *PDMQLOOPDConfig) (*PDMQLOOPD, error) {
 	return pdmqloopd, err
 }
 
-func (loopd *PDMQLOOPD) Main() error {
-	ctx := &context{loopd}
+func (pdmqloopd *PDMQLOOPD) Main() error {
+	ctx := &context{pdmqloopd}
 
 	exitCh := make(chan error)
 	var once sync.Once
@@ -64,26 +64,26 @@ func (loopd *PDMQLOOPD) Main() error {
 	}
 
 	tcpServer := &tcpServer{ctx: ctx}
-	loopd.waitGroup.Wrap(func() {
-		exitFunc(TCPServer(loopd.tcpListener, tcpServer))
+	pdmqloopd.waitGroup.Wrap(func() {
+		exitFunc(TCPServer(pdmqloopd.tcpListener, tcpServer))
 	})
 
 	httpServer := newHTTPServer(ctx)
-	loopd.waitGroup.Wrap(func() {
-		exitFunc(HTTPServer(loopd.httpListener, httpServer, "http"))
+	pdmqloopd.waitGroup.Wrap(func() {
+		exitFunc(HTTPServer(pdmqloopd.httpListener, httpServer, "http"))
 	})
 
 	err := <-exitCh
 	return err
 }
 
-func (loopd *PDMQLOOPD) Exit() {
-	if loopd.tcpListener != nil {
-		loopd.tcpListener.Close()
+func (pdmqloopd *PDMQLOOPD) Exit() {
+	if pdmqloopd.tcpListener != nil {
+		pdmqloopd.tcpListener.Close()
 	}
 
-	if loopd.httpListener != nil {
-		loopd.httpListener.Close()
+	if pdmqloopd.httpListener != nil {
+		pdmqloopd.httpListener.Close()
 	}
-	loopd.waitGroup.Wait()
+	pdmqloopd.waitGroup.Wait()
 }

@@ -1,5 +1,5 @@
 package pdmqloopd
 
 type context struct {
-	loopd *PDMQLOOPD
+	pdmqloopd *PDMQLOOPD
 }
