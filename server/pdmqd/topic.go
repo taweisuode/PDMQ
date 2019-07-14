@@ -101,7 +101,6 @@ func (pdmqd *PDMQD) GetTopic(topicName string) *Topic {
 	topic, ok := pdmqd.topicMap[topicName]
 	pdmqd.RUnlock()
 	if ok {
-		fmt.Println(11122, topic)
 		return topic
 	}
 	pdmqd.Lock()
@@ -148,6 +147,7 @@ func (topic *Topic) Start() {
 	case topic.startChan <- 1:
 	default:
 	}
+	fmt.Println(topic.startChan, 123)
 }
 func (topic *Topic) GetChannel(channelName string) *Channel {
 	topic.Lock()

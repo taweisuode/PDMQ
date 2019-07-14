@@ -21,7 +21,7 @@ func (server *httpServer) Ping(c *gin.Context) {
 }
 
 /**
- *  @desc:  description
+ *  @desc:  消息发布
  *  @input: data String
  *  @resp:  err resp
  *
