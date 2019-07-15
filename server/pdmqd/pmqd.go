@@ -10,9 +10,21 @@ import (
 	"time"
 )
 
+type Client interface {
+	//Stats() ClientStats
+	IsProducer() bool
+}
+
 type PDMQD struct {
+
+	// 64bit atomic vars need to be first for proper alignment on 32bit platforms
+	clientIDSequence int64
+
 	config   *PDMQDConfig
 	topicMap map[string]*Topic
+
+	clientLock sync.RWMutex
+	clients    map[int64]Client
 
 	tcpListener  net.Listener
 	httpListener net.Listener
@@ -179,6 +191,12 @@ func HandleConn(conn *net.TCPConn) {
 	}
 	fmt.Println("connect close")
 	defer conn.Close()
+}
+
+func (pdmqd *PDMQD) AddClient(clientID int64, client Client) {
+	pdmqd.clientLock.Lock()
+	pdmqd.clients[clientID] = client
+	pdmqd.clientLock.Unlock()
 }
 
 func (pdmqd *PDMQD) Exit() {

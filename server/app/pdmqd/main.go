@@ -48,7 +48,6 @@ func (p *program) Start() (err error) {
 		if err != nil {
 			p.Stop()
 			os.Exit(1)
-
 		}
 	}()
 

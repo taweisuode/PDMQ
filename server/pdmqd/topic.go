@@ -42,7 +42,6 @@ func CreateTopic(topicName string, ctx *context) *Topic {
 		pauseChan:     make(chan int),
 		idFactory:     NewGUIDFactory(ctx.pdmqd.config.ID),
 	}
-
 	t.waitGroup.Wrap(t.msgOutput)
 	return t
 }
@@ -61,9 +60,7 @@ func (topic *Topic) msgOutput() {
 	fmt.Println(5555)
 	for {
 		select {
-		case a := <-topic.startChan:
-
-			fmt.Println("aaaaa", a)
+		case <-topic.startChan:
 		}
 		break
 	}
@@ -73,10 +70,10 @@ func (topic *Topic) msgOutput() {
 		chans = append(chans, c)
 	}
 	if len(chans) > 0 {
-		memoryMsgChan = topic.memoryMsgChan
-	}
 
-	fmt.Println(111111111)
+	}
+	memoryMsgChan = topic.memoryMsgChan
+	fmt.Printf("memoryMsgChan is %+v\n", memoryMsgChan)
 	for {
 		select {
 		case msg = <-memoryMsgChan:
@@ -99,13 +96,13 @@ exit:
 func (pdmqd *PDMQD) GetTopic(topicName string) *Topic {
 	pdmqd.RLock()
 	topic, ok := pdmqd.topicMap[topicName]
+
 	pdmqd.RUnlock()
 	if ok {
 		return topic
 	}
 	pdmqd.Lock()
 	topic = CreateTopic(topicName, &context{pdmqd: pdmqd})
-
 	pdmqd.topicMap[topicName] = topic
 
 	pdmqd.Unlock()
@@ -142,12 +139,11 @@ func (topic *Topic) put(msg *Message) error {
  *
 **/
 func (topic *Topic) Start() {
-	fmt.Println(333311)
 	select {
 	case topic.startChan <- 1:
 	default:
+		fmt.Println(2222)
 	}
-	fmt.Println(topic.startChan, 123)
 }
 func (topic *Topic) GetChannel(channelName string) *Channel {
 	topic.Lock()

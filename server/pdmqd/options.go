@@ -29,6 +29,10 @@ type PDMQDConfig struct {
 
 	MsgChanSize int64
 	MsgMaxSize  int
+
+	MaxChannelConsumers int
+
+	MsgTimeout time.Duration
 }
 
 func InitConfig() *PDMQDConfig {
@@ -52,7 +56,8 @@ func InitConfig() *PDMQDConfig {
 		HTTPClientRequestTimeout: 5 * time.Second,
 
 		MsgChanSize: 9999,
-		MsgMaxSize:  1024 * 1024 * 2, //最大消息体为2Mb
+		MsgMaxSize:  1024 * 1024 * 2,  //最大消息体为2Mb
+		MsgTimeout:  60 * time.Second, //消息超时时间为1分钟
 	}
 	return initConf
 }
