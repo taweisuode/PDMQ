@@ -179,7 +179,7 @@ func HandleConn(conn *net.TCPConn) {
 		case "create_topic":
 			topic := ""
 			channel := ""
-			fmt.Printf("please input topic and message", &topic, &channel)
+			fmt.Println("please input topic and message ", &topic, &channel)
 		}
 		_, err := conn.Write(([]byte(message)))
 		if err != nil {
@@ -191,6 +191,14 @@ func HandleConn(conn *net.TCPConn) {
 	}
 	fmt.Println("connect close")
 	defer conn.Close()
+}
+
+func (pdmqd *PDMQD) RealTCPAddr() *net.TCPAddr {
+	return pdmqd.tcpListener.Addr().(*net.TCPAddr)
+}
+
+func (pdmqd *PDMQD) RealHTTPAddr() *net.TCPAddr {
+	return pdmqd.httpListener.Addr().(*net.TCPAddr)
 }
 
 func (pdmqd *PDMQD) AddClient(clientID int64, client Client) {

@@ -43,11 +43,11 @@ func ParseFlag(config *PDMQDConfig) *PDMQDConfig {
 	return config
 }
 func showHelp() {
-	fmt.Println("Usage\n")
-	fmt.Println("    --version   show webserver version\n")
-	fmt.Println("    --help      show full pmq function guide\n")
-	fmt.Println("    --tcp_listen    set tcp address host and port\n")
-	fmt.Println("    --http_listen    set http address host and port\n")
+	fmt.Println("Usage")
+	fmt.Println("    --version   show webserver version")
+	fmt.Println("    --help      show full pmq function guide")
+	fmt.Println("    --tcp_listen    set tcp address host and port")
+	fmt.Println("    --http_listen    set http address host and port")
 	os.Exit(0)
 }
 
