@@ -90,6 +90,9 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 	subEventChan := client.SubEventChan
 	close(startChan)
 	for {
+		if subChannel != nil {
+			memoryMsgChan = subChannel.memoryMsgChan
+		}
 		select {
 		case subChannel = <-subEventChan:
 			subEventChan = nil
@@ -146,6 +149,9 @@ func (p *protocolV1) Send(client *clientV1, buf []byte) error {
 }
 
 func (p *protocolV1) Exec(client *clientV1, params [][]byte) ([]byte, error) {
+	if bytes.Equal(params[0], []byte("IDENTIFY")) {
+		return []byte("yes"), nil
+	}
 	switch {
 	case bytes.Equal(params[0], []byte("SUB")):
 		return p.SUB(client, params)
@@ -161,6 +167,8 @@ func (p *protocolV1) SUB(client *clientV1, params [][]byte) ([]byte, error) {
 	for {
 		topic := p.ctx.pdmqd.GetTopic(topicName)
 		channel := topic.GetChannel(channelName)
+
+		fmt.Println(topic, channel)
 		if err := channel.AddClient(client.ID, client); err != nil {
 			seelog.Errorf("channel consumers for %s:%s exceeds limit of %d", topicName, channelName, p.ctx.pdmqd.config.MaxChannelConsumers)
 		}

@@ -39,6 +39,7 @@ func CreateTopic(topicName string, ctx *context) *Topic {
 		memoryMsgChan: make(chan *Message, ctx.pdmqd.config.MsgChanSize),
 		ctx:           ctx,
 		paused:        0,
+		startChan:     make(chan int, 10),
 		pauseChan:     make(chan int),
 		idFactory:     NewGUIDFactory(ctx.pdmqd.config.ID),
 	}
@@ -55,6 +56,8 @@ func CreateTopic(topicName string, ctx *context) *Topic {
 func (topic *Topic) msgOutput() {
 	var msg *Message
 	//var buf []byte
+
+	fmt.Println(111111)
 	var chans []*Channel
 	var memoryMsgChan chan *Message
 	for {
@@ -63,15 +66,18 @@ func (topic *Topic) msgOutput() {
 		}
 		break
 	}
+	fmt.Println(22222)
 	topic.RLock()
-	fmt.Println(33333333)
 	for _, c := range topic.channelMap {
 		chans = append(chans, c)
 	}
+	fmt.Println(33333)
+	fmt.Println(chans)
 	if len(chans) > 0 {
 
 	}
 	memoryMsgChan = topic.memoryMsgChan
+	fmt.Println(44444)
 	fmt.Printf("memoryMsgChan is %+v\n", memoryMsgChan)
 	for {
 		select {
@@ -138,10 +144,11 @@ func (topic *Topic) put(msg *Message) error {
  *
 **/
 func (topic *Topic) Start() {
-	select {
-	case topic.startChan <- 1:
+	topic.startChan <- 1
+	/*select {
+	case
 	default:
-	}
+	}*/
 }
 func (topic *Topic) GetChannel(channelName string) *Channel {
 	topic.Lock()
@@ -150,6 +157,8 @@ func (topic *Topic) GetChannel(channelName string) *Channel {
 		channel = CreateChannel(topic.topicName, channelName, topic.ctx)
 	}
 	topic.channelMap[channelName] = channel
+
+	fmt.Printf("topic channel map is [%+v]", topic.channelMap)
 	topic.Unlock()
 
 	return channel

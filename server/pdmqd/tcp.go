@@ -18,20 +18,10 @@ type tcpServer struct {
 }
 
 func (tcp *tcpServer) Handle(clientConn net.Conn) {
-	/*	buf := make([]byte, 4)
-		_, err := io.ReadFull(clientConn, buf)
-		if err != nil {
-			clientConn.Close()
-			return
-		}
-		var prot Protocol
-
-		err = prot.IOLoop(clientConn)
-		if err != nil {
-			return
-		}*/
 	buf := make([]byte, 2)
 	_, err := io.ReadFull(clientConn, buf)
+
+	fmt.Println(err, string(buf))
 	if err != nil {
 		seelog.Errorf("read buf from clientConn err, %v", err)
 		clientConn.Close()
