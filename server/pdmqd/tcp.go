@@ -7,6 +7,7 @@
 package pdmqd
 
 import (
+	"fmt"
 	"github.com/cihub/seelog"
 	"io"
 	"net"
@@ -42,6 +43,8 @@ func (tcp *tcpServer) Handle(clientConn net.Conn) {
 	case "V1":
 		protocol = &protocolV1{ctx: tcp.ctx}
 	}
+
+	fmt.Println(protocol)
 	err = protocol.IOLoop(clientConn)
 	if err != nil {
 		seelog.Errorf("client(%s) - %s", clientConn.RemoteAddr(), err)

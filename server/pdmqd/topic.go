@@ -57,7 +57,6 @@ func (topic *Topic) msgOutput() {
 	//var buf []byte
 	var chans []*Channel
 	var memoryMsgChan chan *Message
-	fmt.Println(5555)
 	for {
 		select {
 		case <-topic.startChan:
@@ -142,7 +141,6 @@ func (topic *Topic) Start() {
 	select {
 	case topic.startChan <- 1:
 	default:
-		fmt.Println(2222)
 	}
 }
 func (topic *Topic) GetChannel(channelName string) *Channel {

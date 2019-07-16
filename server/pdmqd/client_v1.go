@@ -63,6 +63,7 @@ func newClientV1(id int64, conn net.Conn, ctx *context) *clientV1 {
 		MsgTimeout: ctx.pdmqd.config.MsgTimeout,
 
 		ReadyStateChan: make(chan int, 1),
+		SubEventChan:   make(chan *Channel, 1),
 		ExitChan:       make(chan int),
 		ClientHost:     host,
 		ClientPort:     port,

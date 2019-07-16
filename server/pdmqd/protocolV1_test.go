@@ -7,7 +7,10 @@
 package pdmqd
 
 import (
+	"PDMQ/internal/test"
 	"fmt"
+	"github.com/nsqio/go-nsq"
+	"io"
 	"net"
 	"testing"
 	"time"
@@ -48,5 +51,20 @@ func TestProtocolV1_Base(t *testing.T) {
 	topic.PutMessage(msg)
 
 	conn, err := mustConnectPDMQD(tcpAddr)
+	sub(t, conn, "world", "ch")
+
+	resp, err := nsq.ReadResponse(conn)
+	test.Nil(t, err)
+	frameType, data, err := nsq.UnpackResponse(resp)
+	msgOut, _ := decodeMessage(data)
+	test.Equal(t, frameTypeMessage, frameType)
+	test.Equal(t, msg.ID, msgOut.ID)
+	test.Equal(t, msg.Body, msgOut.Body)
+	test.Equal(t, uint16(1), msgOut.Attempts)
 	fmt.Println(conn, err)
+}
+func sub(t *testing.T, conn io.ReadWriter, topicName string, channelName string) {
+	total, err := nsq.Subscribe(topicName, channelName).WriteTo(conn)
+	fmt.Println("111", total, err)
+	//readValidate(t, conn, frameTypeResponse, "OK")
 }

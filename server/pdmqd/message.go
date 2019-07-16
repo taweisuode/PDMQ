@@ -47,6 +47,21 @@ func CreateMessage(id MessageID, body []byte) *Message {
 	}
 }
 
+func decodeMessage(b []byte) (*Message, error) {
+	var msg Message
+
+	if len(b) < minValidMsgLength {
+		return nil, fmt.Errorf("invalid message buffer size (%d)", len(b))
+	}
+
+	msg.Timestamp = int64(binary.BigEndian.Uint64(b[:8]))
+	msg.Attempts = binary.BigEndian.Uint16(b[8:10])
+	copy(msg.ID[:], b[10:10+MsgIDLength])
+	msg.Body = b[10+MsgIDLength:]
+
+	return &msg, nil
+}
+
 /**
  * @desc revert []byte into Message struct
  * @param (query []byte

@@ -46,6 +46,7 @@ func New(config *PDMQDConfig) (*PDMQD, error) {
 		config:    config,
 		startTime: time.Now(),
 		topicMap:  make(map[string]*Topic),
+		clients:   make(map[int64]Client),
 		exitChan:  make(chan int),
 	}
 
@@ -80,8 +81,6 @@ func (pdmqd *PDMQD) Main() error {
 		})
 	}
 	tcpServer := &tcpServer{ctx: ctx}
-	util.PrintJson("tcpServer:", tcpServer)
-
 	//这里捕获退出的方法
 	pdmqd.waitGroup.Wrap(func() {
 		exitFunc(TCPServer(pdmqd.tcpListener, tcpServer))

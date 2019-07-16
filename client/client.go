@@ -3,14 +3,12 @@ package main
 import (
 	"fmt"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
 
 func main() {
-
-	conn, err := net.DialTimeout("tcp", ":9998", 2*time.Second)
+	conn, err := net.DialTimeout("tcp", ":9400", time.Second)
 	if err != nil {
 		fmt.Println("tcp connect error ", err.Error())
 		return
@@ -18,10 +16,14 @@ func main() {
 	defer conn.Close()
 	// 下面进行读写
 	var wg sync.WaitGroup
-	wg.Add(2)
-	go handleWrite(conn, &wg)
+	wg.Add(1)
+	for {
+		go handleWrite(conn, &wg)
+		time.Sleep(5 * time.Second)
+	}
 	//go handleRead(conn, &wg)
 	wg.Wait()
+	select {}
 	/*for {
 		var buf = make([]byte, 32)
 		n, err := conn.Read(buf)
@@ -54,18 +56,29 @@ func main() {
 
 func handleWrite(conn net.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Println("what would you do ?")
+	_, err := conn.Write([]byte("V1"))
+	if err != nil {
+		fmt.Println("write data error", err)
+	}
+	for {
+		a := []byte("SUB world ch \n")
+		fmt.Println(a)
+		conn.Write(a)
+		//缓存 conn 中的数据
+		buf := make([]byte, 1024)
+		cnt, _ := conn.Read(buf)
+		//回显服务器端回传的信息
+		fmt.Print("服务器端回复" + string(buf[0:cnt]))
+	}
+	/*fmt.Println("connect pdmqd tcp listener...")
 	work := ""
+	fmt.Println("print your job")
 	for {
 		fmt.Scanf("%s", &work)
 		switch work {
-		case "create_topic":
+		case "send_protocol":
 			fmt.Println("send your message")
-			topic := ""
-			message := ""
-			fmt.Scanf("%s,%s", &topic, &message)
-
-			_, err := conn.Write(([]byte(topic + "")))
+			_, err := conn.Write([]byte("V1"))
 			if err != nil {
 				fmt.Println("write data error", err)
 			}
@@ -76,7 +89,6 @@ func handleWrite(conn net.Conn, wg *sync.WaitGroup) {
 		default:
 			continue
 		}
-	}
-	fmt.Println("connect close")
-	defer conn.Close()
+	}*/
+	//defer conn.Close()
 }
