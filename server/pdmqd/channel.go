@@ -2,6 +2,7 @@ package pdmqd
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -49,6 +50,7 @@ func (c *Channel) PutMessage(msg *Message) error {
 func (c *Channel) put(msg *Message) error {
 	select {
 	case c.memoryMsgChan <- msg:
+		fmt.Printf("msg has put into channel memoryMsgChan,msg is [%+v]\n", string(msg.Body))
 	}
 	return nil
 }

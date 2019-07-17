@@ -93,10 +93,6 @@ func (pdmqd *PDMQD) Main() error {
 	})
 	err := <-exitChan
 	return err
-
-	//pdmqd.TcpListen()
-
-	//pdmqd.HttpListen()
 }
 func testA() error {
 	//a := errors.New("hello error")

@@ -57,7 +57,6 @@ func (topic *Topic) msgOutput() {
 	var msg *Message
 	//var buf []byte
 
-	fmt.Println(111111)
 	var chans []*Channel
 	var memoryMsgChan chan *Message
 	for {
@@ -66,28 +65,22 @@ func (topic *Topic) msgOutput() {
 		}
 		break
 	}
-	fmt.Println(22222)
 	topic.RLock()
+
 	for _, c := range topic.channelMap {
 		chans = append(chans, c)
 	}
-	fmt.Println(33333)
-	fmt.Println(chans)
-	if len(chans) > 0 {
-
-	}
 	memoryMsgChan = topic.memoryMsgChan
-	fmt.Println(44444)
-	fmt.Printf("memoryMsgChan is %+v\n", memoryMsgChan)
 	for {
 		select {
 		case msg = <-memoryMsgChan:
 		case <-topic.exitChan:
 			goto exit
 		}
-
 		//为每个channel 投递消息
 		for _, channel := range chans {
+
+			fmt.Printf("topic is [%+v], channel is [%+v],msg is [%+v]\n", channel.topicName, channel.ChannelName, string(msg.Body))
 			err := channel.PutMessage(msg)
 			if err != nil {
 				seelog.Infof("TOPIC(%s) ERROR: failed to put msg(%s) to channel(%s) - %s", topic.topicName, msg.ID, channel.ChannelName, err)
@@ -158,7 +151,6 @@ func (topic *Topic) GetChannel(channelName string) *Channel {
 	}
 	topic.channelMap[channelName] = channel
 
-	fmt.Printf("topic channel map is [%+v]", topic.channelMap)
 	topic.Unlock()
 
 	return channel

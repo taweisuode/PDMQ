@@ -91,6 +91,7 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 	close(startChan)
 	for {
 		if subChannel != nil {
+			fmt.Println(2222222)
 			memoryMsgChan = subChannel.memoryMsgChan
 		}
 		select {
@@ -98,6 +99,8 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 			subEventChan = nil
 			fmt.Println(subChannel)
 		case msg := <-memoryMsgChan:
+			fmt.Println(333333)
+			fmt.Printf("memoryMsgChan is [%+v]\n", msg)
 			msg.Attempts++
 			err = p.SendMessage(client, msg)
 			if err != nil {
@@ -127,6 +130,7 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 		return err
 	}
 
+	fmt.Printf("send buf is [%+v]\n", buf.String())
 	err = p.Send(client, buf.Bytes())
 	if err != nil {
 		seelog.Errorf(" protocolV1 send error %v\n", err.Error())
