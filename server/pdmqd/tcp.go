@@ -7,7 +7,6 @@
 package pdmqd
 
 import (
-	"fmt"
 	"github.com/cihub/seelog"
 	"io"
 	"net"
@@ -20,8 +19,6 @@ type tcpServer struct {
 func (tcp *tcpServer) Handle(clientConn net.Conn) {
 	buf := make([]byte, 2)
 	_, err := io.ReadFull(clientConn, buf)
-
-	fmt.Println(err, string(buf))
 	if err != nil {
 		seelog.Errorf("read buf from clientConn err, %v", err)
 		clientConn.Close()
@@ -34,7 +31,6 @@ func (tcp *tcpServer) Handle(clientConn net.Conn) {
 		protocol = &protocolV1{ctx: tcp.ctx}
 	}
 
-	fmt.Println(protocol)
 	err = protocol.IOLoop(clientConn)
 	if err != nil {
 		seelog.Errorf("client(%s) - %s", clientConn.RemoteAddr(), err)

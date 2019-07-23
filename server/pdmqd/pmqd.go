@@ -91,6 +91,9 @@ func (pdmqd *PDMQD) Main() error {
 	pdmqd.waitGroup.Wrap(func() {
 		exitFunc(HTTPServer(pdmqd.httpListener, httpServer, "http"))
 	})
+
+	fmt.Printf("[PDMQD] [%+v] TCP: listening on [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), pdmqd.config.TCPAddress)
+	fmt.Printf("[PDMQD] [%+v] HTTP: listening on [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), pdmqd.config.HTTPAddress)
 	err := <-exitChan
 	return err
 }

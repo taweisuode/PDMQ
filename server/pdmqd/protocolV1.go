@@ -35,8 +35,6 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 
 	p.ctx.pdmqd.AddClient(clientID, client)
 
-	fmt.Printf("p.ctx.pdmqd [%+v]\n", p.ctx.pdmqd.clients)
-
 	messagePushStartedChan := make(chan bool)
 	go p.messagePush(client, messagePushStartedChan)
 	<-messagePushStartedChan
@@ -46,8 +44,6 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 	//fmt.Println("123", n, err, string(buf))
 	for {
 		line, err = client.Reader.ReadSlice('\n')
-
-		fmt.Printf("line [%+v] error [%+v]", string(line), err)
 		if err != nil {
 			if err == io.EOF {
 				err = nil
@@ -76,7 +72,7 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 	}
 	connect.Close()
 	close(client.ExitChan)
-	return nil
+	return err
 }
 
 func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
@@ -92,11 +88,16 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 	for {
 		if subChannel != nil {
 			memoryMsgChan = subChannel.memoryMsgChan
+
+			fmt.Printf("receive memoryMsgChan data ", subChannel.messageCount)
+		} else {
+			fmt.Println("cannot receive memoryMsgChan data ")
 		}
 		select {
 		case subChannel = <-subEventChan:
 			subEventChan = nil
-			fmt.Println("subChannel", 222)
+			fmt.Printf("subChannel [%+v]\n", subChannel)
+			fmt.Printf("subChannel is topic name is [%+v] channel name is [%+v]\n", subChannel.topicName, subChannel.ChannelName)
 		case msg := <-memoryMsgChan:
 			fmt.Printf("memoryMsgChan is [%+v]\n", msg)
 			msg.Attempts++
@@ -106,6 +107,7 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 				goto exit
 			}
 		case <-client.ExitChan:
+			fmt.Printf("receive client [%+v] exitchan\n", subChannel.ChannelName)
 			goto exit
 		}
 	}
@@ -120,7 +122,9 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 	buf := &bytes.Buffer{}
 
 	total, err := msg.WriteTo(buf)
-	seelog.Infof("msg write buf total [%d] error [%v]\n", total, err.Error())
+	if err != nil {
+		seelog.Infof("msg write buf total [%d] error [%v]\n", total, err.Error())
+	}
 
 	seelog.Infof("msg write buf [%v]\n", string(buf.Bytes()))
 	if err != nil {
@@ -129,8 +133,10 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 	}
 
 	fmt.Printf("send buf is [%+v]\n", buf.String())
+	fmt.Println(123)
 	err = p.Send(client, buf.Bytes())
 	if err != nil {
+		fmt.Println(123)
 		seelog.Errorf(" protocolV1 send error %v\n", err.Error())
 		return err
 	}
@@ -138,10 +144,16 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 }
 
 func (p *protocolV1) Send(client *clientV1, buf []byte) error {
-	client.Lock()
+	//client.Lock()
 
+	fmt.Println(1111, buf)
+	fmt.Println(client)
 	len, err := client.Write(buf)
-
+	fmt.Println(11112)
+	if err != nil {
+		fmt.Println(123456)
+		return err
+	}
 	fmt.Println(len, err)
 	if err != nil {
 		client.Unlock()
@@ -168,7 +180,7 @@ func (p *protocolV1) SUB(client *clientV1, params [][]byte) ([]byte, error) {
 	var channel *Channel
 	for {
 		topic := p.ctx.pdmqd.GetTopic(topicName)
-		channel := topic.GetChannel(channelName)
+		channel = topic.GetChannel(channelName)
 
 		fmt.Println(topic, channel)
 		if err := channel.AddClient(client.ID, client); err != nil {
