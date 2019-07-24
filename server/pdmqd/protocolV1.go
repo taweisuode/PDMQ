@@ -103,11 +103,11 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 			msg.Attempts++
 			err = p.SendMessage(client, msg)
 			if err != nil {
-				seelog.Errorf("protocolV1 sendmessage error %v\n", err.Error())
+				seelog.Errorf("protocolV1 send message error %v\n", err.Error())
 				goto exit
 			}
 		case <-client.ExitChan:
-			fmt.Printf("receive client [%+v] exitchan\n", subChannel.ChannelName)
+			//fmt.Printf("receive client [%+v] exitchan\n", subChannel.ChannelName)
 			goto exit
 		}
 	}
@@ -131,12 +131,8 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 		seelog.Errorf(" protocolV1 sendmessage error %v\n", err.Error())
 		return err
 	}
-
-	fmt.Printf("send buf is [%+v]\n", buf.String())
-	fmt.Println(123)
 	err = p.Send(client, buf.Bytes())
 	if err != nil {
-		fmt.Println(123)
 		seelog.Errorf(" protocolV1 send error %v\n", err.Error())
 		return err
 	}
@@ -146,12 +142,10 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 func (p *protocolV1) Send(client *clientV1, buf []byte) error {
 	//client.Lock()
 
-	fmt.Println(1111, buf)
-	fmt.Println(client)
+	fmt.Printf("send buf is [%+v]\n", string(buf))
 	len, err := client.Write(buf)
-	fmt.Println(11112)
 	if err != nil {
-		fmt.Println(123456)
+		seelog.Errorf("send error [%+v]\n", err.Error())
 		return err
 	}
 	fmt.Println(len, err)
