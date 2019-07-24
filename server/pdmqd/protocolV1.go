@@ -8,6 +8,7 @@ package pdmqd
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"github.com/cihub/seelog"
 	"io"
@@ -20,9 +21,9 @@ type protocolV1 struct {
 }
 
 const (
-	frameTypeResponse int32 = 0
-	frameTypeError    int32 = 1
-	frameTypeMessage  int32 = 2
+	ProtocolCommonResponse  int32 = 1
+	ProtocolErrorResponse   int32 = 2
+	ProtocolMessageResponse int32 = 3
 )
 
 func (p *protocolV1) IOLoop(connect net.Conn) error {
@@ -39,9 +40,6 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 	go p.messagePush(client, messagePushStartedChan)
 	<-messagePushStartedChan
 
-	//var buf = make([]byte, 1024)
-	//n, err := connect.Read(buf)
-	//fmt.Println("123", n, err, string(buf))
 	for {
 		line, err = client.Reader.ReadSlice('\n')
 		if err != nil {
@@ -64,8 +62,9 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 			continue
 		}
 		if response != nil {
-			err = p.Send(client, response)
+			err = p.Send(client, ProtocolCommonResponse, response)
 			if err != nil {
+				seelog.Errorf("send common response is [%v],err is [%v]", response, err)
 				break
 			}
 		}
@@ -131,7 +130,7 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 		seelog.Errorf(" protocolV1 sendmessage error %v\n", err.Error())
 		return err
 	}
-	err = p.Send(client, buf.Bytes())
+	err = p.Send(client, ProtocolMessageResponse, buf.Bytes())
 	if err != nil {
 		seelog.Errorf(" protocolV1 send error %v\n", err.Error())
 		return err
@@ -139,18 +138,13 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 	return nil
 }
 
-func (p *protocolV1) Send(client *clientV1, buf []byte) error {
+func (p *protocolV1) Send(client *clientV1, protocolType int32, buf []byte) error {
 	//client.Lock()
 
 	fmt.Printf("send buf is [%+v]\n", string(buf))
-	len, err := client.Write(buf)
+	_, err := p.SendFramedResponse(client.Writer, protocolType, buf)
 	if err != nil {
-		seelog.Errorf("send error [%+v]\n", err.Error())
 		return err
-	}
-	fmt.Println(len, err)
-	if err != nil {
-		client.Unlock()
 	}
 	return err
 
@@ -185,4 +179,30 @@ func (p *protocolV1) SUB(client *clientV1, params [][]byte) ([]byte, error) {
 	client.Channel = channel
 	client.SubEventChan <- channel
 	return []byte("ok"), nil
+}
+
+// SendFramedResponse is a server side utility function to prefix data with a length header
+// and frame header and write to the supplied Writer
+func (p *protocolV1) SendFramedResponse(w io.Writer, protocolType int32, data []byte) (int, error) {
+	beBuf := make([]byte, 4)
+	size := uint32(len(data)) + 4
+
+	binary.BigEndian.PutUint32(beBuf, size)
+	fmt.Println("fmt.Println(beBuf)", beBuf)
+	n, err := w.Write(beBuf)
+	if err != nil {
+		return n, err
+	}
+
+	binary.BigEndian.PutUint32(beBuf, uint32(protocolType))
+	fmt.Println("2fmt.Println(beBuf)", beBuf)
+	n, err = w.Write(beBuf)
+	if err != nil {
+		return n + 4, err
+	}
+
+	n, err = w.Write(data)
+	fmt.Println("3fmt.Println(beBuf)", string(data))
+
+	return n + 8, err
 }

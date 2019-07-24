@@ -9,7 +9,6 @@ package pdmqd
 import (
 	"PDMQ/internal/common"
 	"PDMQ/internal/util"
-	"fmt"
 	"github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -49,10 +48,8 @@ func (server *httpServer) Pub(c *gin.Context) {
 	}
 
 	topic := server.ctx.pdmqd.GetTopic(topicName)
-	fmt.Printf("topic is %+v\n", topic)
 
 	msg := CreateMessage(topic.GenerateID(), topicMsg)
-	fmt.Printf("msg is %+v\n", msg)
 	err = topic.PutMessage(msg)
 	if err != nil {
 		util.SendResult(c, common.TopicMsgError, common.RespMsg[common.TopicMsgError], nil)
@@ -61,7 +58,6 @@ func (server *httpServer) Pub(c *gin.Context) {
 	sucJson["topic"] = topicName
 	sucJson["msg"] = string(topicMsg)
 
-	util.PrintJson("response data is ", sucJson)
 	util.SendResult(c, common.Success, common.RespMsg[common.Success], sucJson)
 	return
 }
