@@ -3,15 +3,14 @@ package pdmqd
 import (
 	"PDMQ/internal/util"
 	"fmt"
+	"github.com/cihub/seelog"
 	"io"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
 
 type Client interface {
-	//Stats() ClientStats
 	IsProducer() bool
 }
 
@@ -37,7 +36,7 @@ type PDMQD struct {
 	sync.RWMutex
 }
 
-//
+//pdmq 初始化配置项
 func New(config *PDMQDConfig) (*PDMQD, error) {
 	var (
 		err error
@@ -62,11 +61,7 @@ func New(config *PDMQDConfig) (*PDMQD, error) {
 	return pdmqd, err
 }
 
-/**
- * @desc pmqd 主进程 开启tcp 跟http 监听
- * @param
- * @return
- */
+//pmqd 主进程 开启tcp 跟http 监听
 func (pdmqd *PDMQD) Main() error {
 	ctx := &context{pdmqd: pdmqd}
 	exitChan := make(chan error)
@@ -75,8 +70,8 @@ func (pdmqd *PDMQD) Main() error {
 		//去掉这个once 的话 exitFunc 会执行多次
 		once.Do(func() {
 			if err != nil {
+				seelog.Errorf("[PDMQD] [%+v],pdmq occur error [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
 			}
-			fmt.Println(err)
 			exitChan <- err
 		})
 	}
@@ -97,10 +92,6 @@ func (pdmqd *PDMQD) Main() error {
 	err := <-exitChan
 	return err
 }
-func testA() error {
-	//a := errors.New("hello error")
-	return nil
-}
 func (pdmqd *PDMQD) TcpListen() {
 	fmt.Println(pdmqd.config)
 	tcpListener, err := net.Listen("tcp", pdmqd.config.TCPAddress)
@@ -108,23 +99,19 @@ func (pdmqd *PDMQD) TcpListen() {
 		tcpListener: tcpListener,
 	}
 	if err != nil {
-		fmt.Println("tcp connect fail", err.Error())
+		seelog.Errorf("[PDMQD] [%+v],tcp connect fail [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
 		return
 	}
 	var connect Connect
 	for {
 		conn, err := topicObject.tcpListener.Accept()
-		fmt.Println(conn)
 		if err != nil {
-			fmt.Println("tcp accept fail", err.Error())
+			seelog.Errorf("[PDMQD] [%+v],tcp accept fail [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
 		}
 		if tconn, ok := conn.(*net.TCPConn); ok {
-			fmt.Println(tconn, pdmqd)
-			os.Exit(1)
 			go connect.AcceptConnect(pdmqd, tconn)
 		}
 	}
-	fmt.Println("hello world")
 }
 
 func (pdmqd *PDMQD) HttpListen() {
@@ -133,62 +120,25 @@ func (pdmqd *PDMQD) HttpListen() {
 		httpListener: httpListener,
 	}
 	if err != nil {
-		fmt.Println("http connect fail", err.Error())
+		seelog.Errorf("[PDMQD] [%+v],http connect fail [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
 		return
 	}
-	//id := 0
 
 	for {
 		conn, err := topicObject.tcpListener.Accept()
 		if err != nil {
-			fmt.Println("tcp accept fail", err.Error())
+			seelog.Errorf("[PDMQD] [%+v],tcp accept fail [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
 		}
 		var buf = make([]byte, 32)
 		n, err := conn.Read(buf)
 		if err != nil && err != io.EOF {
-			fmt.Println("read error:", err)
 			break
 		} else {
 			if string(buf[:n]) == "exit" {
-				fmt.Println("connect exit")
 				break
 			}
-			fmt.Printf("read % bytes, content is %s\n", n, string(buf[:n]))
 		}
 	}
-	/*for {
-		conn, err := topicObject.tcpListener.Accept()
-		if err != nil {
-			fmt.Println("tcp accept fail", err.Error())
-		}
-		id++
-		if tconn, ok := conn.(*net.TCPConn); ok {
-			go HandleConn(tconn, id)
-		}
-
-	}*/
-}
-func HandleConn(conn *net.TCPConn) {
-	fmt.Println("send your message")
-	message := ""
-	for {
-		fmt.Scanf("%s", &message)
-		switch message {
-		case "create_topic":
-			topic := ""
-			channel := ""
-			fmt.Println("please input topic and message ", &topic, &channel)
-		}
-		_, err := conn.Write(([]byte(message)))
-		if err != nil {
-			fmt.Println("write data error", err)
-		}
-		if message == "exit" {
-			break
-		}
-	}
-	fmt.Println("connect close")
-	defer conn.Close()
 }
 
 func (pdmqd *PDMQD) RealTCPAddr() *net.TCPAddr {

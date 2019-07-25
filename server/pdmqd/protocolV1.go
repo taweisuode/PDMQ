@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"sync/atomic"
+	"time"
 )
 
 type protocolV1 struct {
@@ -45,7 +46,7 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 		}
 		params := bytes.Split(line, []byte(" "))
 
-		fmt.Printf("params: %+v\n", string(params[0]))
+		fmt.Printf("[PDMQD] [%+v] get consumer request params: %+v\n", time.Now().Format("2006-01-02 15:04:05"), string(params[0]))
 
 		//这里跟nsq 不同的地方在于 我将所有信息都生成为Message，方便统一调动
 		msg, err := p.Exec(client, params)
@@ -78,20 +79,16 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 	for {
 		if subChannel != nil {
 			memoryMsgChan = subChannel.memoryMsgChan
-
-			fmt.Printf("receive memoryMsgChan data ", subChannel.messageCount)
 		} else {
-			fmt.Println("cannot receive memoryMsgChan data ")
+			seelog.Error("cannot receive memoryMsgChan data ")
 		}
 		select {
 		case subChannel = <-subEventChan:
 			//消费端注册到pdmqd 会往subEventChan中投递channel消息，这块用来接收这个消息
 			subEventChan = nil
-			fmt.Printf("subChannel [%+v]\n", subChannel)
-			fmt.Printf("subChannel is topic name is [%+v] channel name is [%+v]\n", subChannel.topicName, subChannel.ChannelName)
+			seelog.Infof("subChannel is topic name is [%+v] channel name is [%+v]\n", subChannel.topicName, subChannel.ChannelName)
 		case msg := <-memoryMsgChan:
 			//pub消息最终会落在这个case中
-			fmt.Printf("memoryMsgChan is [%+v]\n", msg)
 			msg.Attempts++
 			msg.ProtocolType = ProtocolMessageResponse
 			err = p.SendMessage(client, msg)
@@ -116,7 +113,7 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 
 	total, err := msg.WriteTo(buf)
 
-	fmt.Printf("msg ID is [%+v],data is [%+v]\n", string(msg.ID[:]), string(msg.Body))
+	fmt.Printf("[PDMQD] [%+v] msg ID is [%+v],msg body is [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), string(msg.ID[:]), string(msg.Body))
 	if err != nil {
 		seelog.Infof("msg write buf total [%d] error [%v]\n", total, err.Error())
 	}
@@ -136,8 +133,7 @@ func (p *protocolV1) SendMessage(client *clientV1, msg *Message) error {
 
 func (p *protocolV1) Send(client *clientV1, buf []byte) error {
 
-	len, err := p.SendProtocolResponse(client, buf)
-	fmt.Println(len, err)
+	_, err := p.SendProtocolResponse(client, buf)
 	if err != nil {
 		client.Unlock()
 	}
@@ -179,8 +175,6 @@ func (p *protocolV1) SUB(client *clientV1, params [][]byte) error {
 	for {
 		topic := p.ctx.pdmqd.GetTopic(topicName)
 		channel = topic.GetChannel(channelName)
-
-		fmt.Println(topic, channel)
 		if err := channel.AddClient(client.ID, client); err != nil {
 			seelog.Errorf("channel consumers for %s:%s exceeds limit of %d", topicName, channelName, p.ctx.pdmqd.config.MaxChannelConsumers)
 		}
@@ -199,7 +193,7 @@ func (p *protocolV1) RDY(client *clientV1, params [][]byte) error {
 //发送该协议统一的返回信息
 func (p *protocolV1) SendProtocolResponse(w io.Writer, data []byte) (int, error) {
 	n, err := w.Write(data)
-	fmt.Printf("write to client data is [%+v], len is [%d]\n", string(data), n)
+	seelog.Infof("write to client data is [%+v], len is [%d]\n", string(data), n)
 
 	return n, err
 }

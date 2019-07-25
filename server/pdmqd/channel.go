@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Consumer interface {
@@ -50,7 +51,7 @@ func (c *Channel) PutMessage(msg *Message) error {
 func (c *Channel) put(msg *Message) error {
 	select {
 	case c.memoryMsgChan <- msg:
-		fmt.Printf("msg has put into channel memoryMsgChan,msg is [%+v]\n", string(msg.Body))
+		fmt.Printf("[PDMQD] [%+v] msg has put into channel memoryMsgChan,msg body is [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), string(msg.Body))
 	}
 	return nil
 }

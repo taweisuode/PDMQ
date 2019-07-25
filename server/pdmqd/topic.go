@@ -2,7 +2,6 @@ package pdmqd
 
 import (
 	"PDMQ/server/waitGroup"
-	"fmt"
 	"github.com/cihub/seelog"
 	"sync"
 	"sync/atomic"
@@ -79,8 +78,6 @@ func (topic *Topic) msgOutput() {
 		}
 		//为每个channel 投递消息
 		for _, channel := range chans {
-
-			fmt.Printf("topic is [%+v], channel is [%+v],msg is [%+v]\n", channel.topicName, channel.ChannelName, string(msg.Body))
 			err := channel.PutMessage(msg)
 			if err != nil {
 				seelog.Infof("TOPIC(%s) ERROR: failed to put msg(%s) to channel(%s) - %s", topic.topicName, msg.ID, channel.ChannelName, err)

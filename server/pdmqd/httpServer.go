@@ -9,13 +9,10 @@ package pdmqd
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/julienschmidt/httprouter"
 	"net"
 	"net/http"
 	"strings"
 )
-
-type APIHandler func(http.ResponseWriter, *http.Request, httprouter.Params) (interface{}, error)
 
 type httpServer struct {
 	ctx    *context
@@ -39,12 +36,7 @@ func (s *httpServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	s.router.ServeHTTP(w, req)
 }
 
-/**
- *  @desc:  用gin 作为http 服务框架
- *  @input: ctx *context
- *  @resp:  *httpServer
- *
-**/
+//用gin 作为http 服务框架
 func newHTTPServer(ctx *context) *httpServer {
 	ginApi := gin.New()
 	gin.SetMode(gin.DebugMode)
@@ -53,6 +45,7 @@ func newHTTPServer(ctx *context) *httpServer {
 		ctx:    ctx,
 		router: ginApi,
 	}
+	//探活
 	ginApi.GET("/ping", server.Ping)
 
 	//发布内容
