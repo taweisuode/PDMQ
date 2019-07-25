@@ -46,10 +46,9 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 		params := bytes.Split(line, []byte(" "))
 
 		fmt.Printf("params: %+v\n", string(params[0]))
+
+		//这里跟nsq 不同的地方在于 我将所有信息都生成为Message，方便统一调动
 		msg, err := p.Exec(client, params)
-
-		//fmt.Printf("response: %+v\n", string(msg.Body))
-
 		if err != nil && msg == nil {
 			seelog.Errorf("response is [%v],err is [%v]", msg, err)
 			continue
@@ -94,6 +93,7 @@ func (p *protocolV1) messagePush(client *clientV1, startChan chan bool) {
 			//pub消息最终会落在这个case中
 			fmt.Printf("memoryMsgChan is [%+v]\n", msg)
 			msg.Attempts++
+			msg.ProtocolType = ProtocolMessageResponse
 			err = p.SendMessage(client, msg)
 			if err != nil {
 				seelog.Errorf("protocolV1 send message error %v\n", err.Error())
@@ -146,25 +146,35 @@ func (p *protocolV1) Send(client *clientV1, buf []byte) error {
 }
 
 func (p *protocolV1) Exec(client *clientV1, params [][]byte) (*Message, error) {
-	if bytes.Equal(params[0], []byte("IDENTIFY")) {
-		return nil, nil
-	}
+	var (
+		err error
+	)
+	topicName := string(params[1])
+	topic := p.ctx.pdmqd.GetTopic(topicName)
+	msg := CreateMessage(topic.GenerateID(), params[0])
+
 	switch {
+	case bytes.Equal(params[0], []byte("FIN")):
+		return nil, nil
+	case bytes.Equal(params[0], []byte("IDENTIFY")):
+		return nil, nil
 	case bytes.Equal(params[0], []byte("SUB")):
-		return p.SUB(client, params)
+		if err = p.SUB(client, params); err != nil {
+			return nil, err
+		}
 	case bytes.Equal(params[0], []byte("RDY")):
-		return p.RDY(client, params)
+		if err = p.RDY(client, params); err != nil {
+
+		}
 	}
-	return nil, nil
+	return msg, nil
 }
 
 //客户端注册时 调用sub 请求
 //往SubEventChan中投递，而这个chan 在pdmqd中的messagePush 中 接收
-func (p *protocolV1) SUB(client *clientV1, params [][]byte) (*Message, error) {
+func (p *protocolV1) SUB(client *clientV1, params [][]byte) error {
 	topicName := string(params[1])
 	channelName := string(params[2])
-	topic := p.ctx.pdmqd.GetTopic(topicName)
-	msg := CreateMessage(topic.GenerateID(), params[0])
 	var channel *Channel
 	for {
 		topic := p.ctx.pdmqd.GetTopic(topicName)
@@ -178,15 +188,12 @@ func (p *protocolV1) SUB(client *clientV1, params [][]byte) (*Message, error) {
 	}
 	client.Channel = channel
 	client.SubEventChan <- channel
-	return msg, nil
+	return nil
 }
 
-func (p *protocolV1) RDY(client *clientV1, params [][]byte) (*Message, error) {
-	topicName := string(params[1])
-	topic := p.ctx.pdmqd.GetTopic(topicName)
-	msg := CreateMessage(topic.GenerateID(), params[0])
-
-	return msg, nil
+//Todo：这一版不做处理，需要为消费端限流做反馈
+func (p *protocolV1) RDY(client *clientV1, params [][]byte) error {
+	return nil
 }
 
 //发送该协议统一的返回信息
