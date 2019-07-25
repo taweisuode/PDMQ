@@ -20,4 +20,5 @@
     3.消息分发类似nsq，分为topic->channel->consumer形式
     
 
-      
+#### 如何安装与使用
+    查看[INSTALL](https://github.com/taweisuode/PDMQ/blob/master/INSTALL.md)
