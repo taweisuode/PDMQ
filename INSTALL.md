@@ -2,17 +2,16 @@
 
 #### 下载与安装
 
+
 ```
 1. 下载 https://github.com/taweisuode/PDMQ.git
-2. 进入server/app/
-3. 执行build命令 go build -o pdmqd main.go
+2. 执行make run
 ```
 #### GO_PDMQ 客户端下载与安装
 
 ```
 1. 下载https://github.com/taweisuode/GO_PDMQ.git
-2. 进入main/文件夹
-3. 执行build命令 go build -o consumer main.go
+2. 执行make run
 ```
 #### API 使用
 > ping 探活接口
@@ -29,19 +28,19 @@ curl  http://127.0.0.1:9401/ping
 
 
 ```
-1. 启动pdmqd 服务server/app/pdmqd   
+1. 启动pdmqd 服务
 ```
 
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1g5cdthhpfxj30uw044ab0.jpg)
 
 可以看出pdmqd 监听这tcp 以及http端口，http 有2个方法 一个ping探活接口，一个是pub 消息发布接口
 ```
-2.启动consumer main/consumer 
+2.启动consumer服务
 ```
 ![](http://ww2.sinaimg.cn/large/006tNc79ly1g5ce90oxewj30o5027aac.jpg)
 这里显示连接成功，可以接收生产的消息数据了
 
-同时pdmqd接收到了consumer的连接，已经有2次请求
+同事pdmqd接收到了consumer的连接，已经有2次请求
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1g5cedkssmij30nk02i0t7.jpg)
 
 sub是注册请求，RDY是客户端用来流量控制的请求
