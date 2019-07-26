@@ -13,7 +13,6 @@
 1. 下载https://github.com/taweisuode/GO_PDMQ.git
 2. 进入main/文件夹
 3. 执行build命令 go build -o consumer main.go
-4. 执行consumer  ./consumer
 ```
 #### API 使用
 > ping 探活接口
