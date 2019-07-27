@@ -4,14 +4,16 @@
 
 
 ```
-1. 下载 https://github.com/taweisuode/PDMQ.git
-2. 执行make run
+1. git clone https://github.com/taweisuode/PDMQ.git
+2. cd PDMQ
+3. make run
 ```
 #### GO_PDMQ 客户端下载与安装
 
 ```
-1. 下载https://github.com/taweisuode/GO_PDMQ.git
-2. 执行make run
+1. git clone https://github.com/taweisuode/GO_PDMQ.git
+2. cd GO_PDMQ
+2. make run
 ```
 #### API 使用
 > ping 探活接口
