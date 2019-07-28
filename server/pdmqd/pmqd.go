@@ -103,6 +103,7 @@ func (pdmqd *PDMQD) TcpListen() {
 		return
 	}
 	var connect Connect
+
 	for {
 		conn, err := topicObject.tcpListener.Accept()
 		if err != nil {
