@@ -1,2 +1,2 @@
 *.DS_Store
-server/app/pdmqd/pdmqd
+/server/app/pdmqd/pdmqd
