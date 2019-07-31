@@ -1,2 +1,3 @@
 *.DS_Store
 /server/app/pdmqd/pdmqd
+/server/app/pdmqloopd/pdmqloopd
