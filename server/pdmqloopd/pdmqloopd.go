@@ -8,6 +8,7 @@ package pdmqloopd
 
 import (
 	"PDMQ/internal/util"
+	"fmt"
 	"github.com/cihub/seelog"
 	"net"
 	"sync"
@@ -73,6 +74,8 @@ func (pdmqloopd *PDMQLOOPD) Main() error {
 		exitFunc(HTTPServer(pdmqloopd.httpListener, httpServer, "http"))
 	})
 
+	fmt.Printf("[PDMQLOOPD] [%+v] TCP: listening on [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), pdmqloopd.config.TCPAddress)
+	fmt.Printf("[PDMQLOOPD] [%+v] HTTP: listening on [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), pdmqloopd.config.HTTPAddress)
 	err := <-exitCh
 	return err
 }
