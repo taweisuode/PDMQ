@@ -37,6 +37,8 @@ func newHTTPServer(ctx *context) *httpServer {
 	}
 	ginApi.GET("/ping", server.Ping)
 
+	ginApi.GET("/lookup", server.Lookup)
+
 	return server
 
 }

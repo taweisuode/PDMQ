@@ -22,10 +22,10 @@ type PDMQLOOPD struct {
 	tcpListener  net.Listener
 	httpListener net.Listener
 
+	startTime time.Time
 	exitChan  chan int
 	waitGroup util.WaitGroupWrapper
-
-	startTime time.Time
+	DB        *RegistrationDB
 }
 
 func New(config *PDMQLOOPDConfig) (*PDMQLOOPD, error) {
@@ -36,6 +36,7 @@ func New(config *PDMQLOOPDConfig) (*PDMQLOOPD, error) {
 		config:    config,
 		startTime: time.Now(),
 		exitChan:  make(chan int),
+		DB:        NewRegistrationDB(),
 	}
 
 	pdmqloopd.tcpListener, err = net.Listen("tcp", config.TCPAddress)

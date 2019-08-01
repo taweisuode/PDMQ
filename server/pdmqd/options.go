@@ -27,8 +27,13 @@ type PDMQDConfig struct {
 	HTTPClientConnectTimeout time.Duration `flag:"http-client-connect-timeout" cfg:"http_client_connect_timeout"`
 	HTTPClientRequestTimeout time.Duration `flag:"http-client-request-timeout" cfg:"http_client_request_timeout"`
 
-	MsgChanSize int64
-	MsgMaxSize  int
+	LoopTCPAddresses []string `flag:"tcp-address"`
+
+	BroadcastAddress string
+	MsgChanSize      int64
+	MsgMaxSize       int
+
+	Version string
 
 	MaxChannelConsumers int
 
@@ -46,6 +51,8 @@ func InitConfig() *PDMQDConfig {
 	io.WriteString(h, hostname)
 	defaultID := int64(crc32.ChecksumIEEE(h.Sum(nil)) % 1024)
 
+	//默认是loopd 地址 9500端口
+	loopTcpAddress := []string{"0.0.0.0:9500"}
 	initConf := &PDMQDConfig{
 		ID: defaultID,
 
@@ -54,6 +61,10 @@ func InitConfig() *PDMQDConfig {
 		HTTPAddress:              "0.0.0.0:9401",
 		HTTPClientConnectTimeout: 2 * time.Second,
 		HTTPClientRequestTimeout: 5 * time.Second,
+
+		LoopTCPAddresses: loopTcpAddress,
+		BroadcastAddress: hostname,
+		Version:          "V1.0",
 
 		MsgChanSize: 9999,
 		MsgMaxSize:  1024 * 1024 * 2,  //最大消息体为2Mb

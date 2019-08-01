@@ -14,6 +14,10 @@ const (
 	MsgEmpty        = 11002
 
 	TopicMsgError = 12100
+
+	LoopGetTopicError = 13000
+
+	LoopFindTopicError = 13001
 )
 
 var RespMsg = map[int]string{
@@ -21,5 +25,8 @@ var RespMsg = map[int]string{
 	PubMsgReadError: "pub msg read error",
 	MsgTooBig:       "pub msg is too big",
 	MsgEmpty:        "pub msg is empty",
-	TopicMsgError:   "topci pub msg error",
+	TopicMsgError:   "topic pub msg error",
+
+	LoopGetTopicError:  "loopd get topic name error",
+	LoopFindTopicError: "loopd find topic  error",
 }

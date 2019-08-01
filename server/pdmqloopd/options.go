@@ -27,6 +27,9 @@ type PDMQLOOPDConfig struct {
 	HTTPClientConnectTimeout time.Duration `flag:"http-client-connect-timeout" cfg:"http_client_connect_timeout"`
 	HTTPClientRequestTimeout time.Duration `flag:"http-client-request-timeout" cfg:"http_client_request_timeout"`
 	MsgChanSize              int64
+
+	//生产者的有效时间
+	TombstoneLifetime time.Duration
 }
 
 func InitConfig() *PDMQLOOPDConfig {
