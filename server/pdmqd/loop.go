@@ -25,6 +25,8 @@ func (pdmqd *PDMQD) loop() {
 	ticker := time.NewTicker(15 * time.Second)
 	loopPeers := make([]*loopPeer, 0)
 	lookupAddrs := make([]string, 0)
+
+	fmt.Println(1111, pdmqd.config.LoopTCPAddresses)
 	for {
 		for _, address := range pdmqd.config.LoopTCPAddresses {
 			loopPeer := newLookupPeer(address, pdmqd.config.MsgMaxSize,
@@ -40,7 +42,6 @@ func (pdmqd *PDMQD) loop() {
 			//没15秒探活
 			for _, loopPeer := range loopPeers {
 				cmd := pdmq.Ping()
-				fmt.Println(11111)
 				_, err := loopPeer.Command(cmd)
 				if err != nil {
 					seelog.Errorf("LOOKUPD(%s): %s - %s", loopPeer, cmd, err)

@@ -7,7 +7,8 @@
 package pdmqloopd
 
 import (
-	"fmt"
+	"github.com/cihub/seelog"
+	"io"
 	"net"
 )
 
@@ -16,32 +17,24 @@ type tcpServer struct {
 }
 
 func (tcp *tcpServer) Handle(clientConn net.Conn) {
-	/*	buf := make([]byte, 4)
-		_, err := io.ReadFull(clientConn, buf)
-		if err != nil {
-			clientConn.Close()
-			return
-		}
-		var prot Protocol
+	buf := make([]byte, 2)
+	_, err := io.ReadFull(clientConn, buf)
+	if err != nil {
+		seelog.Errorf("read buf from clientConn err, %v", err)
+		clientConn.Close()
+		return
+	}
+	var protocol Protocol
+	protocolVal := string(buf)
+	switch protocolVal {
+	case "V1":
+		protocol = &protocolV1{ctx: tcp.ctx}
+	}
 
-		err = prot.IOLoop(clientConn)
-		if err != nil {
-			return
-		}*/
-
-	defer clientConn.Close()
-	var buf [512]byte
-	for {
-		n, err := clientConn.Read(buf[0:])
-		if err != nil {
-			return
-		}
-		rAddr := clientConn.RemoteAddr()
-		fmt.Println("Receive from client", rAddr.String(), string(buf[0:n]))
-		_, err2 := clientConn.Write([]byte("Welcome client!"))
-		if err2 != nil {
-			return
-		}
+	err = protocol.IOLoop(clientConn)
+	if err != nil {
+		seelog.Errorf("client(%s) - %s", clientConn.RemoteAddr(), err)
+		return
 	}
 }
 
