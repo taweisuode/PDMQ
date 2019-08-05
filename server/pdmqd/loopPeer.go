@@ -109,12 +109,15 @@ func (lp *loopPeer) Command(cmd *pdmq.Command) ([]byte, error) {
 	if cmd == nil {
 		return nil, nil
 	}
-	_, err := cmd.WriteTo(lp)
+	n, err := cmd.WriteTo(lp)
+	fmt.Println(123, n, err)
 	if err != nil {
 		lp.Close()
 		return nil, err
 	}
+	fmt.Println(lp, lp.MsgMaxSize)
 	resp, err := readResponseBounded(lp, lp.MsgMaxSize)
+	fmt.Printf("cmd is [%+v]\n", cmd.String())
 	fmt.Printf("get loopPeer response is [%+v],error is [%+v]\n", resp, err)
 	if err != nil {
 		lp.Close()
@@ -127,20 +130,21 @@ func (lp *loopPeer) Command(cmd *pdmq.Command) ([]byte, error) {
 func readResponseBounded(r io.Reader, limit int) ([]byte, error) {
 	var msgSize int32
 
-	// message size
+	//message size
 	err := binary.Read(r, binary.BigEndian, &msgSize)
+
+	fmt.Println(123, err, msgSize)
 	if err != nil {
 		return nil, err
 	}
 
 	if int(msgSize) > limit {
-		return nil, fmt.Errorf("response body size (%d) is greater than limit (%d)",
-			msgSize, limit)
+		return nil, fmt.Errorf("response body size (%d) is greater than limit (%d)", msgSize, limit)
 	}
-
 	// message binary data
-	buf := make([]byte, msgSize)
+	buf := make([]byte, 100)
 	_, err = io.ReadFull(r, buf)
+	fmt.Printf("read debug r is [%+v],buf is [%+v],err is [%+v]\n", r, string(buf), err)
 	if err != nil {
 		return nil, err
 	}

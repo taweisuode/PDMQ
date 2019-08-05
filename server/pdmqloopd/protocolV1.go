@@ -49,6 +49,8 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 
 		//这里返回自己封装的msg 而不是nsq []byte
 		msg, err := p.Exec(client, reader, params)
+
+		fmt.Printf("receive msg is [%+v],err is [%+v]\n", msg, err)
 		if err != nil && msg == nil {
 			seelog.Errorf("response is [%v],err is [%v]", msg, err)
 			continue
@@ -68,8 +70,9 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 
 func (p *protocolV1) SendMessage(client *clientV1, msg *LoopMessage) error {
 
-	fmt.Printf("[PDMQD] [%+v] msg MessageType is [%+v],msg body is [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), string(msg.MessageType), string(msg.Body))
+	fmt.Printf("[PDMQLOOPD] [%+v] msg MessageType is [%+v],msg body is [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), string(msg.MessageType), string(msg.Body))
 	err := p.Send(client, msg.Body)
+
 	if err != nil {
 		seelog.Errorf(" protocolV1 send error %v\n", err.Error())
 		return err
@@ -97,7 +100,7 @@ func (p *protocolV1) Exec(client *clientV1, reader *bufio.Reader, params [][]byt
 		return nil, nil
 	case bytes.Equal(params[0], []byte("IDENTIFY")):
 		err := p.IDENTIFY(client, reader, params)
-		return nil, err
+		return msg, err
 	case bytes.Equal(params[0], []byte("REGISTER")):
 		return nil, err
 	case bytes.Equal(params[0], []byte("UNREGISTER")):
@@ -160,6 +163,8 @@ func (p *protocolV1) RDY(client *clientV1, params [][]byte) error {
 //发送该协议统一的返回信息
 func (p *protocolV1) SendProtocolResponse(w io.Writer, data []byte) (int, error) {
 	n, err := w.Write(data)
+
+	fmt.Printf("write to client data is [%+v], len is [%d]\n", string(data), n)
 	seelog.Infof("write to client data is [%+v], len is [%d]\n", string(data), n)
 
 	return n, err

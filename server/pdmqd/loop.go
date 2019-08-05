@@ -22,20 +22,25 @@ func (pdmqd *PDMQD) loop() {
 		seelog.Errorf("failed to get hostname - %s", err)
 		os.Exit(1)
 	}
+	connect := true
 	ticker := time.NewTicker(15 * time.Second)
 	loopPeers := make([]*loopPeer, 0)
 	lookupAddrs := make([]string, 0)
-
-	fmt.Println(1111, pdmqd.config.LoopTCPAddresses)
 	for {
-		for _, address := range pdmqd.config.LoopTCPAddresses {
-			loopPeer := newLookupPeer(address, pdmqd.config.MsgMaxSize,
-				connectCallback(pdmqd, hostname))
-			loopPeer.Command(nil)
-			loopPeers = append(loopPeers, loopPeer)
-			lookupAddrs = append(lookupAddrs, address)
+		if connect {
+			for _, address := range pdmqd.config.LoopTCPAddresses {
+				if in(address, lookupAddrs) {
+					continue
+				}
+				loopPeer := newLookupPeer(address, pdmqd.config.MsgMaxSize,
+					connectCallback(pdmqd, hostname))
+				fmt.Println(33333)
+				loopPeer.Command(nil)
+				loopPeers = append(loopPeers, loopPeer)
+				lookupAddrs = append(lookupAddrs, address)
+				connect = false
+			}
 		}
-
 		fmt.Printf("[PDMQLOOP] [%+v] loopPeers: [%+v],lookupAddrs: [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), loopPeers, lookupAddrs)
 		select {
 		case <-ticker.C:
@@ -66,6 +71,8 @@ func connectCallback(pdmqd *PDMQD, hostname string) func(*loopPeer) {
 			return
 		}
 		resp, err := lp.Command(cmd)
+
+		fmt.Printf("resp is [%+v],err is [%+v]\n", string(resp), err)
 		if err != nil {
 			seelog.Errorf("LOOKUPD(%s): %s - %s", lp, cmd, err)
 			return
@@ -112,4 +119,12 @@ func connectCallback(pdmqd *PDMQD, hostname string) func(*loopPeer) {
 			}
 		}
 	}
+}
+func in(s string, lst []string) bool {
+	for _, v := range lst {
+		if s == v {
+			return true
+		}
+	}
+	return false
 }
