@@ -34,7 +34,6 @@ func (pdmqd *PDMQD) loop() {
 				}
 				loopPeer := newLookupPeer(address, pdmqd.config.MsgMaxSize,
 					connectCallback(pdmqd, hostname))
-				fmt.Println(33333)
 				loopPeer.Command(nil)
 				loopPeers = append(loopPeers, loopPeer)
 				lookupAddrs = append(lookupAddrs, address)
@@ -44,7 +43,7 @@ func (pdmqd *PDMQD) loop() {
 		fmt.Printf("[PDMQLOOP] [%+v] loopPeers: [%+v],lookupAddrs: [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), loopPeers, lookupAddrs)
 		select {
 		case <-ticker.C:
-			//没15秒探活
+			//每15秒探活
 			for _, loopPeer := range loopPeers {
 				cmd := pdmq.Ping()
 				_, err := loopPeer.Command(cmd)
@@ -73,6 +72,8 @@ func connectCallback(pdmqd *PDMQD, hostname string) func(*loopPeer) {
 		resp, err := lp.Command(cmd)
 
 		fmt.Printf("resp is [%+v],err is [%+v]\n", string(resp), err)
+
+		fmt.Printf("pre lp info is [%+v]\n", lp.Info)
 		if err != nil {
 			seelog.Errorf("LOOKUPD(%s): %s - %s", lp, cmd, err)
 			return
@@ -82,6 +83,7 @@ func connectCallback(pdmqd *PDMQD, hostname string) func(*loopPeer) {
 			return
 		} else {
 			err = json.Unmarshal(resp, &lp.Info)
+			fmt.Printf("after lp info is [%+v],err is [%+v]\n", lp.Info, err)
 			if err != nil {
 				seelog.Errorf("LOOKUPD(%s): parsing response - %s", lp, resp)
 				lp.Close()
@@ -93,7 +95,6 @@ func connectCallback(pdmqd *PDMQD, hostname string) func(*loopPeer) {
 				}
 			}
 		}
-
 		// build all the commands first so we exit the lock(s) as fast as possible
 		var commands []*pdmq.Command
 		pdmqd.RLock()

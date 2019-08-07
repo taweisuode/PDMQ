@@ -9,10 +9,15 @@ package pdmqloopd
 import (
 	"bufio"
 	"bytes"
+	"encoding/binary"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/cihub/seelog"
 	"io"
+	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -45,12 +50,16 @@ func (p *protocolV1) IOLoop(connect net.Conn) error {
 		}
 		params := bytes.Split(line, []byte(" "))
 
+		for _, b := range params {
+			fmt.Printf("params is [%+v]\n", string(b))
+		}
+
 		fmt.Printf("[PDMQLOOPD] [%+v] get pdmqd request params: %+v\n", time.Now().Format("2006-01-02 15:04:05"), string(params[0]))
 
 		//这里返回自己封装的msg 而不是nsq []byte
 		msg, err := p.Exec(client, reader, params)
 
-		fmt.Printf("receive msg is [%+v],err is [%+v]\n", msg, err)
+		fmt.Printf("receive msg is [%+v],err is [%+v]\n", string(msg.Body), err)
 		if err != nil && msg == nil {
 			seelog.Errorf("response is [%v],err is [%v]", msg, err)
 			continue
@@ -88,43 +97,42 @@ func (p *protocolV1) Send(client *clientV1, buf []byte) error {
 }
 
 func (p *protocolV1) Exec(client *clientV1, reader *bufio.Reader, params [][]byte) (*LoopMessage, error) {
-	var (
-		err error
-	)
 	msg := &LoopMessage{
 		MessageType: params[0],
 		Body:        []byte("OK"),
 	}
 	switch {
-	case bytes.Equal(msg.MessageType, []byte("PING")):
-		return nil, nil
-	case bytes.Equal(params[0], []byte("IDENTIFY")):
-		err := p.IDENTIFY(client, reader, params)
+	case bytes.Equal(bytes.Trim(params[0], "\n"), []byte("PING")):
+		break
+	case bytes.Equal(bytes.Trim(params[0], "\n"), []byte("IDENTIFY")):
+		body, err := p.IDENTIFY(client, reader, params)
+		msg.Body = body
 		return msg, err
-	case bytes.Equal(params[0], []byte("REGISTER")):
-		return nil, err
-	case bytes.Equal(params[0], []byte("UNREGISTER")):
-		return nil, err
+	case bytes.Equal(bytes.Trim(params[0], "\n"), []byte("REGISTER")):
+		break
+	case bytes.Equal(bytes.Trim(params[0], "\n"), []byte("UNREGISTER")):
+		break
 	}
 	return msg, nil
 }
 
 //客户端注册时 调用sub 请求
 //往SubEventChan中投递，而这个chan 在pdmqd中的messagePush 中 接收
-func (p *protocolV1) IDENTIFY(client *clientV1, reader *bufio.Reader, params [][]byte) error {
-	/*var err error
+func (p *protocolV1) IDENTIFY(client *clientV1, reader *bufio.Reader, params [][]byte) ([]byte, error) {
+	var err error
 	if client.peerInfo != nil {
-		return errors.New("cannot IDENTIFY again")
+		return nil, errors.New("cannot IDENTIFY again")
 	}
 	var bodyLen int32
 	err = binary.Read(reader, binary.BigEndian, &bodyLen)
+	fmt.Printf("bodyLen is [%+v]\n", bodyLen)
 	if err != nil {
-		return errors.New("IDENTIFY failed to read body size")
+		return nil, errors.New("IDENTIFY failed to read body size")
 	}
 	body := make([]byte, bodyLen)
 	_, err = io.ReadFull(reader, body)
 	if err != nil {
-		return errors.New("IDENTIFY failed to read body")
+		return nil, errors.New("IDENTIFY failed to read body")
 	}
 
 	peerInfo := PeerInfo{id: client.RemoteAddr().String()}
@@ -133,26 +141,28 @@ func (p *protocolV1) IDENTIFY(client *clientV1, reader *bufio.Reader, params [][
 	peerInfo.RemoteAddress = client.RemoteAddr().String()
 	client.peerInfo = &peerInfo
 
+	fmt.Printf("peerInfo is [%+v]\n", client.peerInfo)
+
 	//这里封装成peerinfo 结构体返回信息
 	// build a response
 	data := make(map[string]interface{})
-	data["tcp_port"] = p.ctx.nsqlookupd.RealTCPAddr().Port
-	data["http_port"] = p.ctx.nsqlookupd.RealHTTPAddr().Port
-	data["version"] = version.Binary
+	data["tcp_port"] = p.ctx.pdmqloopd.RealTCPAddr().Port
+	data["http_port"] = p.ctx.pdmqloopd.RealHTTPAddr().Port
+	data["version"] = p.ctx.pdmqloopd.version
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatalf("ERROR: unable to get hostname %s", err)
 	}
-	data["broadcast_address"] = p.ctx.nsqlookupd.opts.BroadcastAddress
+	data["broadcast_address"] = hostname
 	data["hostname"] = hostname
 
 	response, err := json.Marshal(data)
+
+	fmt.Printf("response is [%+v]\n", string(response))
 	if err != nil {
-		p.ctx.nsqlookupd.logf(LOG_ERROR, "marshaling %v", data)
 		return []byte("OK"), nil
 	}
-	return response, nil*/
-	return nil
+	return response, nil
 }
 
 //Todo：这一版不做处理，需要为消费端限流做反馈

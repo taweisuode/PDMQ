@@ -9,6 +9,7 @@ package pdmqloopd
 import (
 	"PDMQ/internal/common"
 	"PDMQ/internal/util"
+	"fmt"
 	"github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
 )
@@ -26,8 +27,10 @@ func (server *httpServer) Lookup(c *gin.Context) {
 		util.SendResult(c, common.LoopGetTopicError, common.RespMsg[common.LoopGetTopicError], make(map[string]interface{}))
 		return
 	}
-
+	fmt.Printf("server.ctx.pdmqloopd.DB is [%+v]\n", server.ctx.pdmqloopd.DB)
 	registration := server.ctx.pdmqloopd.DB.FindRegistrations("topic", topicName, "")
+
+	fmt.Printf("registration is [%+v],len is [%d]\n", registration, len(registration))
 	if len(registration) == 0 {
 		seelog.Error("find topic is nil ,topicName is [%+v]\n", topicName)
 		util.SendResult(c, common.LoopFindTopicError, common.RespMsg[common.LoopFindTopicError], make(map[string]interface{}))

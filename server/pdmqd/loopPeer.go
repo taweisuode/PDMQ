@@ -8,9 +8,9 @@ package pdmqd
 
 import (
 	pdmq "GO_PDMQ"
-	"encoding/binary"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"time"
 )
@@ -115,7 +115,7 @@ func (lp *loopPeer) Command(cmd *pdmq.Command) ([]byte, error) {
 		lp.Close()
 		return nil, err
 	}
-	fmt.Println(lp, lp.MsgMaxSize)
+	fmt.Printf("lp is [%+v],%+v,%+v\n", lp, lp.conn, lp.MsgMaxSize)
 	resp, err := readResponseBounded(lp, lp.MsgMaxSize)
 	fmt.Printf("cmd is [%+v]\n", cmd.String())
 	fmt.Printf("get loopPeer response is [%+v],error is [%+v]\n", resp, err)
@@ -128,26 +128,32 @@ func (lp *loopPeer) Command(cmd *pdmq.Command) ([]byte, error) {
 
 //获取消息的响应
 func readResponseBounded(r io.Reader, limit int) ([]byte, error) {
-	var msgSize int32
-
-	//message size
+	/*var msgSize int32
 	err := binary.Read(r, binary.BigEndian, &msgSize)
-
-	fmt.Println(123, err, msgSize)
+	fmt.Printf("read response length is [%+v],err is [%+v]\n", msgSize, err)
 	if err != nil {
 		return nil, err
-	}
-
-	if int(msgSize) > limit {
-		return nil, fmt.Errorf("response body size (%d) is greater than limit (%d)", msgSize, limit)
-	}
-	// message binary data
-	buf := make([]byte, 100)
-	_, err = io.ReadFull(r, buf)
-	fmt.Printf("read debug r is [%+v],buf is [%+v],err is [%+v]\n", r, string(buf), err)
+	}*/
+	result, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, err
+		fmt.Println("ReadAll error: ", err.Error())
 	}
+	fmt.Println("result = ", string(result))
+	/*buf := make([]byte, 1024)
+	//接收pdmqd 的 ping 消息 以及 consumer 的注册消息
+	for {
+		//服务器端返回的数据写入空buf
+		cnt, err := r.Read(buf)
 
-	return buf, nil
+		if err != nil {
+			fmt.Printf("客户端读取数据失败 %s\n", err)
+			break
+		}
+
+		return buf[0:cnt], nil
+	}*/
+	return result, nil
+	/*	_, err := io.ReadFull(r, buf)
+		fmt.Printf("read debug r is [%+v],buf is [%+v],err is [%+v]\n", r, string(buf), err)
+		return buf, nil*/
 }

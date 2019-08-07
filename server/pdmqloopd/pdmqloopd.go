@@ -17,7 +17,8 @@ import (
 
 type PDMQLOOPD struct {
 	sync.RWMutex
-	config *PDMQLOOPDConfig
+	config  *PDMQLOOPDConfig
+	version string
 
 	tcpListener  net.Listener
 	httpListener net.Listener
@@ -37,6 +38,7 @@ func New(config *PDMQLOOPDConfig) (*PDMQLOOPD, error) {
 		startTime: time.Now(),
 		exitChan:  make(chan int),
 		DB:        NewRegistrationDB(),
+		version:   "1.0V1",
 	}
 
 	pdmqloopd.tcpListener, err = net.Listen("tcp", config.TCPAddress)
@@ -79,6 +81,14 @@ func (pdmqloopd *PDMQLOOPD) Main() error {
 	fmt.Printf("[PDMQLOOPD] [%+v] HTTP: listening on [%+v]\n", time.Now().Format("2006-01-02 15:04:05"), pdmqloopd.config.HTTPAddress)
 	err := <-exitCh
 	return err
+}
+
+func (pdmqloopd *PDMQLOOPD) RealTCPAddr() *net.TCPAddr {
+	return pdmqloopd.tcpListener.Addr().(*net.TCPAddr)
+}
+
+func (pdmqloopd *PDMQLOOPD) RealHTTPAddr() *net.TCPAddr {
+	return pdmqloopd.httpListener.Addr().(*net.TCPAddr)
 }
 
 func (pdmqloopd *PDMQLOOPD) Exit() {

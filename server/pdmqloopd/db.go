@@ -7,6 +7,7 @@
 package pdmqloopd
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -56,12 +57,15 @@ func (r *RegistrationDB) FindRegistrations(category string, topicName string, ch
 	r.RLock()
 	defer r.RUnlock()
 	if !r.needFilter(topicName, channelName) {
+		fmt.Println(1111)
 		k := Registration{category, topicName, channelName}
 		if _, ok := r.RegistrationMap[k]; ok {
 			return Registrations{k}
 		}
 		return Registrations{}
 	}
+	fmt.Println(222)
+	fmt.Printf("registrationMap is [%+v]\n", r)
 	results := Registrations{}
 	for k := range r.RegistrationMap {
 		if !k.IsMatch(category, topicName, channelName) {
