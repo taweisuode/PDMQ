@@ -141,14 +141,14 @@ func (topic *Topic) Start() {
 	}*/
 }
 func (topic *Topic) GetChannel(channelName string) *Channel {
-	topic.Lock()
+	topic.RLock()
 	channel, ok := topic.channelMap[channelName]
 	if !ok {
 		channel = CreateChannel(topic.topicName, channelName, topic.ctx)
 	}
 	topic.channelMap[channelName] = channel
 
-	topic.Unlock()
+	topic.RUnlock()
 
 	return channel
 }
